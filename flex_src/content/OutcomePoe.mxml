@@ -1,0 +1,273 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox verticalGap="0" color="#004B36" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" xmlns:utils="utils.*"
+		 show="init()" xmlns:content="content.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.repository.Outcometbl;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.core.IFlexDisplayObject;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			import spark.events.IndexChangeEvent;
+			
+			/*******************************************************************************************
+			 * We need to get by OutCome if it was doubleclicked from the previous page, else get all***
+			 * *****************************************************************************************/
+
+			[Bindable]
+			public var projObj : Object;
+			public function init():void
+			{
+				if(EPMSSingleton.getInstance().selectedProj != null)
+				{
+					getOutcomeByProj(EPMSSingleton.getInstance().selectedProj.name);
+					
+					for each(var projItem:Object in EPMSSingleton.getInstance().projectList)
+					{
+						if(EPMSSingleton.getInstance().selectedProj.name == projItem.name)
+						{
+							projInput.selectedItem = projObj = projItem;
+							break;
+						}
+					}
+					
+					EPMSSingleton.getInstance().selectedProj = null;
+				}
+				else
+				{
+					initComplete();
+				}
+			}
+			
+			public function initComplete():void
+			{
+				getAllOutcome();
+			}
+			
+			public function setWidth() : void 
+			{
+				
+			}
+			
+			public function search():void
+			{
+				if(searchInput.text != "")
+				{
+					var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+					var searchKey = searchInput.text;
+					remoteObject.destination = "outcomeOperations";
+					remoteObject.addEventListener(FaultEvent.FAULT, searchFaultHandler);
+					remoteObject.addEventListener(ResultEvent.RESULT, searchResultHandler);
+					remoteObject.searchUser(searchKey);
+					cursorManager.setBusyCursor();
+				}
+				else
+				{
+					searchInput.text = "< Enter your search here >";
+					//getAllUsers();
+				}
+			}
+			
+			public static function searchFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to search for please contact your administrator if this continues.","Failure", 4, null, null,Helper.noEntryImg);
+			}
+			
+			public function searchResultHandler(event:ResultEvent):void
+			{
+				outcomeList = (event.result as ArrayCollection);
+				//Alert.show("Result Search is: "+clientsList.length);
+				if(outcomeList.length != 0)
+				{
+					outcomeListDG.dataProvider = outcomeList;
+				} 
+				else
+				{
+					Alert.show("Outcome info not found.","Error", 4, null, null, Helper.noEntryImg);
+				}
+				cursorManager.removeBusyCursor();
+			}
+			
+			public function clearInnerText():void
+			{
+				if(searchInput.text == "< Enter your search here >")
+				{
+					searchInput.text = "";
+				}
+				
+			}
+			
+			public function getAllOutcome():void
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				remoteObject.destination = "outcomeOperations";
+				remoteObject.addEventListener(FaultEvent.FAULT, getAllOutcomeFaultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT, getAllOutcomeResultHandler);
+				remoteObject.getAll();
+				cursorManager.setBusyCursor();
+			}
+			
+			public static function getAllOutcomeFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to load outcomes please contact your administrator if this continues.","Failure", 4, null, null,Helper.noEntryImg);
+			}
+			
+			public function getAllOutcomeResultHandler(event:ResultEvent):void
+			{
+				//Alert.show("getAllOutcomeResultHandler event.result: \n"+event.result);
+				outcomeList = (event.result as ArrayCollection);
+				EPMSSingleton.getInstance().outcomeList = outcomeList;
+				outcomeListDG.dataProvider = EPMSSingleton.getInstance().outcomeList;
+				
+				for each (var outcome : co.za.ngwane.epms.repository.Outcometbl in EPMSSingleton.getInstance().outcomeList )
+				{
+					EPMSSingleton.getInstance().outcomeNameList.addItem(outcome.name);
+				}
+				
+				cursorManager.removeBusyCursor();
+				setWidth();
+			}
+			
+			public var loadPopUp:IFlexDisplayObject; 
+			//public var myPopUp:AddUser; 
+			
+			public var addOutcomePopup : AddOutcomePopup; 
+			
+			public function addOutcome() : void
+			{
+				if(EPMSSingleton.getInstance().outcomeAdd)
+				{
+					Helper.editNameWindow=PopUpManager.createPopUp(FlexGlobals.topLevelApplication.successfullyLogin, AddOutcomePopup, true); 
+					// cast to a nameEditorPopup
+					addOutcomePopup = AddOutcomePopup(Helper.editNameWindow); 
+				}
+				else
+				{
+					Alert.show("You have no permission to add outcome","Permission Error", 4, null, null,Helper.noEntryImg);
+				}
+			}
+			
+			public function refresh() : void 
+			{
+				//getAllUsers();
+				searchInput.text = "< Enter your search here >";
+			}
+			
+			public function getSelectedOutcome() : void 
+			{
+				EPMSSingleton.getInstance().selectedOutcome = outcomeListDG.selectedItem as Outcometbl;
+				//(this.parent as ViewStack).selectedIndex = 3;
+				(this.parent as ViewStack).selectedChild = FlexGlobals.topLevelApplication.poeContentVS.outputVS;
+			}
+			
+			public var selectedProj : String = "";
+			public function getSelectedProj(event:IndexChangeEvent):void
+			{
+				selectedProj = projInput.selectedItem;
+				getOutcomeByProj(selectedProj);
+			}
+			
+			public function getOutcomeByProj (projName : String)
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				remoteObject.destination = "outcomeOperations";
+				remoteObject.addEventListener(FaultEvent.FAULT, getOutcomeByProjFaultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT, getOutcomeByProjResultHandler);
+				remoteObject.getOutcomeByProj(projName);
+				cursorManager.setBusyCursor();
+			}
+			
+			public static function getOutcomeByProjFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to load outcomes please contact your administrator if this continues.","Failure", 4, null, null,Helper.noEntryImg);
+			}
+			
+			public var outcomeList:ArrayCollection = EPMSSingleton.getInstance().outcomeList;
+			
+			public function getOutcomeByProjResultHandler(event:ResultEvent):void
+			{
+				//Alert.show("getAllOutcomeResultHandler event.result: \n"+event.result);
+				outcomeList = (event.result as ArrayCollection);
+				EPMSSingleton.getInstance().outcomeList = outcomeList;
+				outcomeListDG.dataProvider = EPMSSingleton.getInstance().outcomeList;
+				
+				for each (var outcome : co.za.ngwane.epms.repository.Outcometbl in EPMSSingleton.getInstance().outcomeList )
+				{
+					EPMSSingleton.getInstance().outcomeNameList.addItem(outcome.name);
+				}
+				
+				cursorManager.removeBusyCursor();
+				setWidth();
+			}
+			
+			
+			
+		]]>
+	</fx:Script>
+	<mx:VBox verticalGap="0" width="100%" height="100%" paddingLeft="5" paddingBottom="5" paddingRight="5" paddingTop="5">
+		
+		<mx:Canvas x="80" y="49" width="100%" height="45" borderVisible="false">
+			<s:HGroup width="100%">
+				<s:DropDownList id="projInput" width="220" dataProvider="{EPMSSingleton.getInstance().projectList}" prompt="Select Project" change="getSelectedProj(event)"
+								labelField="name"/>
+				<mx:Spacer/><mx:Spacer/>
+				<s:VGroup>
+					<s:TextInput id="searchInput" x="68" y="7" width="186" change="search()" click="clearInnerText()" prompt="search outcomes"/>
+				</s:VGroup>
+				<mx:Canvas width="80%" borderVisible="false"/>
+				
+				<!--<mx:Canvas id="refreshBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="refresh()">
+				<mx:Image source="@Embed('images/BtnRefresh.png')"/>
+				</mx:Canvas>-->
+			</s:HGroup>
+		</mx:Canvas>
+		
+		<mx:Spacer/>
+		
+		<s:HGroup width="100%" paddingBottom="5">
+			<s:Label height="25" fontWeight="bold" paddingBottom="5" paddingLeft="0" paddingRight="5"
+					 paddingTop="5" text="Search returned {EPMSSingleton.getInstance().outcomeList.length} result(s)"/>
+			<mx:Canvas width="80%" borderVisible="false"/>
+			<s:Label text="Project Outcomes" paddingTop="5" fontWeight="bold" fontSize="16"/>
+			<mx:Canvas width="80%" borderVisible="false"/>
+			<mx:Canvas id="addUserBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="addOutcome()">
+				<mx:Image source="@Embed('images/BtnCreate.png')"/>
+			</mx:Canvas>
+		</s:HGroup>
+		
+		<mx:DataGrid id="outcomeListDG" height="100%" width="100%" doubleClickEnabled="true" itemDoubleClick="getSelectedOutcome()"
+					 dataProvider="{EPMSSingleton.getInstance().outcomeList}">
+			<mx:columns>
+				<mx:DataGridColumn headerText="ID" dataField="id" visible="false" width="40"/>
+				<mx:DataGridColumn headerText="NAME" dataField="name" id="nameDC"/>
+				<mx:DataGridColumn headerText="DESCRIPTION" dataField="description" id="roleDC" />
+				<mx:DataGridColumn headerText="PROJECT" dataField="projtblid.name" id="programDC"/>
+				<mx:DataGridColumn itemRenderer="content.OutcomeItemRender" visible="true" headerText=""/>
+			</mx:columns>
+
+		</mx:DataGrid>
+	</mx:VBox>
+	
+</mx:VBox>
+

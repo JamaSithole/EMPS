@@ -1,0 +1,222 @@
+/* CSS file */
+@namespace s "library://ns.adobe.com/flex/spark";
+@namespace mx "library://ns.adobe.com/flex/mx";
+
+mx|Menu
+{
+	borderAlpha : 2;
+	borderStyle : solid;
+}
+
+.backgroundImage 
+{
+	contentBackgroundColor: #FFFFFF ;
+/*	backgroundImage: Embed("images/TMSBackgroundImage.JPG");*/
+	backgroundImageFillMode: repeat;
+}
+s|BorderContainer
+{
+	/*chrome-color:#3A7092;*/
+	fill-colors: #5598B4, #D0EBAB;
+	background-color:#5598B4;
+	cornerRadius : 10;
+}
+.menuBox
+{
+	border-skin: ClassReference("content.FadingColors");
+	fill-colors: #004735, #D0EBAB;		
+}
+.menuButton
+{
+	corner-radius : 0;
+	color : #FFFFFF;
+	text-roll-over-color : #000000;
+	font-weight : bold;
+	text-align : left;
+	chrome-color : #5598B4;
+	background-alpha : 0.2;
+}
+s|TextInput
+{
+	typographicCase : uppercase;
+	fontWeight : bold;
+}
+s|Panel
+{
+	chrome-color:#3A7092;
+	corner-radius: 0;
+	fill-colors: #004735, #D0EBAB;
+	background-color:#b0c0c0;
+/*	skin-class: ClassReference("CustomSkin");*/
+/*	background-alpha: 0.2;*/
+	
+}
+/*
+mx|Alert
+{
+	background-color : #BAD532;
+	color : #000000;
+}
+*/
+
+/*mx|Alert {
+	titleStyleName: "alertTitle";
+	messageStyleName: "alertMessage";
+	buttonStyleName: "alertButton";
+	cornerRadius: 0;
+	embedFonts: true;
+	fontFamily: Base02;
+}*/
+
+
+mx|Alert
+{
+	background-color : #FFFFFF;
+	color : #000000;
+}
+
+
+mx|Alert {
+	titleStyleName: "alertTitle";
+	messageStyleName: "alertMessage";
+	/*buttonStyleName: "alertButton";*/
+	cornerRadius: 0;
+	embedFonts: true;
+	fontFamily: Base02;
+}
+
+.alertTitle {
+	letterSpacing: 0;
+	fontSize: 14;
+	color: blue;
+}
+
+.alertMessage {
+	letterSpacing: 0;
+	fontSize: 12;
+	fontWeight: normal;
+	color: black;
+}
+
+.alertButton {
+	letterSpacing: 0;
+	fontSize: 12;
+	cornerRadius: 10;
+	fontWeight: normal;
+	textRollOverColor: white;
+	color: blue;
+	skin: ClassReference(null);
+}
+
+.login
+{ 
+	/* border-style: solid; */
+	border-skin: ClassReference("content.FadingColors");
+	fill-colors: #004735, #D0EBAB;
+	corner-radius: 10;
+}
+
+.header
+{
+	color : #FFFFFF;
+	font-weight : bold;
+}
+
+mx|Accordion
+{
+	fill-colors: #004B36, #004B36;
+	content-background-color : #FFFFFF;
+	chrome-color:#004B36;
+	header-style-name:header;
+}
+
+mx|DataGrid
+{
+	/*borderStyle : none;*/
+	horizontalGridLines: true;
+	horizontalGridLineColor: #DDDDDD;
+	alternatingItemColors: #F7F7F7, #FFFFFF;
+	rollOverColor: #8d8e79;
+	selectionColor: #8d8e79;
+	text-roll-over-color:#004B36;
+	verticalGridLines: true;
+	vertical-grid-line-color:#DDDDDD;
+	border-color:#DDDDDD;
+	font-size:11;
+	font-family:Arial;	
+}
+
+mx|LinkButton 
+{
+	color : blue;
+}
+
+mx|LinkBar 
+{
+	separatorWidth : 0;
+	textSelectedColor : blue; 
+}
+
+.menuLabel
+{
+	fontFamily: Arial;
+	fontSize: 18;
+	color: #191970;
+	/*000080*/
+}
+
+.menuSelectedLabel {
+	fontFamily: Arial;
+	fontSize: 18;
+	color: #7DB3E4;
+}
+
+.bhekzin {
+	fontFamily: Arial;
+	fontSize: 18;
+	color: #BAD532;
+}
+
+mx|Panel
+{
+	titleBackgroundSkin :  ClassReference("skins.ContentSkin");
+	borderColor : #BAD532;
+}
+
+mx|Form
+{
+	color : #2D2E2F;
+/*	backgroundColor : #FFFFFF;*/
+}
+
+mx|Canvas
+{
+	backgroundColor : #FFFFFF;
+}
+
+mx|DateField
+{
+	/*
+	contentBackgroundColor : #BAD532;
+	formatString : "YYYY-MM-DD";
+	font-weight : bold;
+	text-align : left;
+	color : #000000;
+	*/
+}
+
+mx|DataGrid
+{
+	typographicCase : uppercase;
+	fontWeight : bold;
+}
+
+mx|HBox
+{
+	backgroundColor : #FFFFFF;
+}
+
+.button1
+{
+	skinClass: ClassReference("skins.CustomButtonSkin1");
+}

@@ -1,0 +1,350 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow  xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%"
+				creationComplete="init()" title="Add/Update Actuals"
+				close="cancel()" xmlns:content="content.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		
+	</fx:Declarations>
+	
+	<fx:Style source="style/epms.css"/>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.repository.Outcometbl;
+			import co.za.ngwane.epms.repository.Outputtbl;
+			import co.za.ngwane.epms.repository.Qoupd;
+			
+			import flashx.textLayout.factory.TruncationOptions; 
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.helper.Status;
+			import co.za.ngwane.epms.repository.Userepms;
+			
+			import flashx.textLayout.formats.Float;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.controls.Text;
+			import mx.core.FlexGlobals;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			import spark.events.IndexChangeEvent;
+			
+			private function init() : void
+			{
+				PopUpManager.centerPopUp(this);
+				
+				if(EPMSSingleton.getInstance().selectedOutput.currq == EPMSSingleton.getInstance().Q1)
+				{
+					quatorLbl.label = EPMSSingleton.getInstance().q1Txt;
+					quatorLbl0.label = EPMSSingleton.getInstance().q1TarTxt;
+					targetInput.text = EPMSSingleton.getInstance().selectedOutput.q1.toString();
+					//EPMSSingleton.getInstance().quator = EPMSSingleton.getInstance().quator1;
+				}
+				else if(EPMSSingleton.getInstance().selectedOutput.currq == EPMSSingleton.getInstance().Q2)
+				{
+					quatorLbl.label = EPMSSingleton.getInstance().q2Txt;
+					quatorLbl0.label = EPMSSingleton.getInstance().q2TarTxt;
+					targetInput.text = EPMSSingleton.getInstance().selectedOutput.q2.toString();
+				}
+				else if(EPMSSingleton.getInstance().selectedOutput.currq == EPMSSingleton.getInstance().Q3)
+				{
+					quatorLbl.label = EPMSSingleton.getInstance().q3Txt;
+					quatorLbl0.label = EPMSSingleton.getInstance().q3TarTxt;
+					targetInput.text = EPMSSingleton.getInstance().selectedOutput.q3.toString();
+				}
+				else if(EPMSSingleton.getInstance().selectedOutput.currq == EPMSSingleton.getInstance().Q4)
+				{
+					quatorLbl.label = EPMSSingleton.getInstance().q4Txt;
+					quatorLbl0.label = EPMSSingleton.getInstance().q4TarTxt;
+					targetInput.text = EPMSSingleton.getInstance().selectedOutput.q4.toString();
+				}
+			}
+			
+			private function cancel() : void
+			{
+				PopUpManager.removePopUp(this);
+			}
+			
+			private function seacrh():void
+			{
+				
+			}
+			
+			public var errorMSG:String = new String();
+			private function isValid():Boolean
+			{
+				
+				if(qaInput.text == "" || !Helper.isNumeric(qaInput.text)){
+					//Alert.show("Please Enter Numeric Value");
+					errorMSG += "Please Enter Numeric Value.\n";
+				}
+				
+				if(totBudSpendInput.text== "" || !Helper.isNumeric(totBudSpendInput.text)){
+					//Alert.show("Please Enter Numeric Value");
+					errorMSG += "Please Enter Numeric Value.\n";
+				}
+				
+				if(errorMSG.length > 3) 
+				{
+					return false;
+				}
+				else
+				{
+					return true;
+				}
+			}
+			
+			public function qaInputZero() : void
+			{
+				Alert.yesLabel = "Yes";
+				Alert.noLabel = "No";
+				Alert.show("Are you sure the actual value for this quator is 0?", "Actual Value is 0 ", 3, null, qaInputZeroHandler);
+			}
+			
+			public function qaInputZeroHandler(event:CloseEvent) : void 
+			{
+				if (event.detail==Alert.YES)
+				{
+					EPMSSingleton.getInstance().quatorTargetNotMet = true;
+					qaInputfocusIn = false;
+				}
+				else
+				{
+					//Alert.show("Please Enter Correct Value.","Validation Error", 4, null, null, Helper.noEntryImg);
+					//qaInput.focusEnabled = true;
+					EPMSSingleton.getInstance().quatorTargetNotMet = false;
+					qaInputfocusIn = false;
+				}
+			}
+			
+			public function doUpdateOutcome():void
+			{
+				if(isValid()) 
+				{
+					var qoupd : co.za.ngwane.epms.repository.Qoupd = new co.za.ngwane.epms.repository.Qoupd();
+					var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+					
+					EPMSSingleton.getInstance().selectedOutput.budspend = totBudSpendInput.text as Number;
+					if(EPMSSingleton.getInstance().selectedOutput.currq == EPMSSingleton.getInstance().Q1)
+					{
+						//EPMSSingleton.getInstance().selectedOutput.q1a = qaInputVal;
+						EPMSSingleton.getInstance().selectedOutput.currq = EPMSSingleton.getInstance().Q2;
+					}
+					else if (EPMSSingleton.getInstance().selectedOutput.currq == EPMSSingleton.getInstance().Q2)
+					{
+						//EPMSSingleton.getInstance().selectedOutput.q2a = qaInputVal;
+						EPMSSingleton.getInstance().selectedOutput.currq = EPMSSingleton.getInstance().Q3;
+					}
+					else if (EPMSSingleton.getInstance().selectedOutput.currq == EPMSSingleton.getInstance().Q3)
+					{
+						//EPMSSingleton.getInstance().selectedOutput.q3a = qaInputVal;
+						EPMSSingleton.getInstance().selectedOutput.currq = EPMSSingleton.getInstance().Q4;
+					}
+					else if (EPMSSingleton.getInstance().selectedOutput.currq == EPMSSingleton.getInstance().Q4)
+					{
+						//EPMSSingleton.getInstance().selectedOutput.q4a = qaInputVal;
+					}
+					qoupd.qscore = qaInputVal;
+					if( EPMSSingleton.getInstance().quatorTargetNotMet )
+					{
+						qoupd.auditstatus = selectedAudStatus;
+						qoupd.comment = " ";
+						qoupd.outputtblid = EPMSSingleton.getInstance().selectedOutput;
+						qoupd.paction = startDInput.selectedDate;
+						qoupd.paendd = endDInput.selectedDate;
+						qoupd.quo = EPMSSingleton.getInstance().selectedOutput.currq;
+						qoupd.tmet = false;
+						qoupd.reasonf = reasonNotReachingTargetInput.text;
+						qoupd.coraction = corActionInput.text;
+						
+					}
+					
+					remoteObject.destination = "outputOperations";  
+					remoteObject.updateOutput( EPMSSingleton.getInstance().selectedOutput, qoupd ); 
+					remoteObject.addEventListener(FaultEvent.FAULT, addOutFaultHandler);
+					remoteObject.addEventListener(ResultEvent.RESULT, addOutResultHandler);
+					cursorManager.setBusyCursor();
+				}
+				else
+				{
+					Alert.show(errorMSG,"Validation Failure", 4, null, null, Helper.noEntryImg);
+					errorMSG = "";
+				}
+			}
+			
+			public function addOutResultHandler(event:ResultEvent):void
+			{
+				//Alert.show("event.result is : "+event.result.toString());
+				var result : Boolean = event.result as Boolean;
+				if( result == true )
+				{	
+					Alert.show("Actual updated successfully.","Successful", 4, null, null, Helper.accept);
+					cancel();
+					clearForm();
+					
+					EPMSSingleton.getInstance().selectedOutput = new Outputtbl();
+					FlexGlobals.topLevelApplication.sectionContent.outputVS.init();
+					
+					FlexGlobals.topLevelApplication.dataSignOffContent.dataSignOffVS.init();
+
+				}
+				else
+				{
+					Alert.show("Failed to updated actual.","Error", 4, null, null,Helper.noEntryImg);
+				}
+				cursorManager.removeBusyCursor();
+			}
+			
+			var dotSeparator : String = ".";
+			
+			public function clearForm() : void
+			{
+				
+			}
+			
+			public static function addOutFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to add actual.","Failure", 4, null, null,Helper.noEntryImg);
+			}
+			
+			public var selectedAudStatus : String = "";
+			public function getSelectedAuditStatus(event:IndexChangeEvent):void
+			{
+				//selectedAudStatus = auditStatusInput.selectedItem;
+			}
+			
+			public var target : Number = 0; 
+			public function qafocusOut() : void
+			{
+				
+				if(EPMSSingleton.getInstance().selectedOutput.currq == EPMSSingleton.getInstance().Q1)
+				{
+					target = EPMSSingleton.getInstance().selectedOutput.q1;
+				}
+				else if (EPMSSingleton.getInstance().selectedOutput.currq == EPMSSingleton.getInstance().Q2)
+				{
+					target = EPMSSingleton.getInstance().selectedOutput.q2;
+				}
+				else if (EPMSSingleton.getInstance().selectedOutput.currq == EPMSSingleton.getInstance().Q3)
+				{
+					target = EPMSSingleton.getInstance().selectedOutput.q3;
+				}
+				else if (EPMSSingleton.getInstance().selectedOutput.currq == EPMSSingleton.getInstance().Q4)
+				{
+					target = EPMSSingleton.getInstance().selectedOutput.q4;
+				}
+				
+				if(qaInputfocusIn)
+				{
+					if(qaInputVal < target)
+					{
+						if(qaInputVal == 0)
+						{
+							qaInputZero();
+						}
+						
+						EPMSSingleton.getInstance().quatorTargetNotMet = true;
+						qaInputfocusIn = false;
+					}
+					else
+					{
+						EPMSSingleton.getInstance().quatorTargetNotMet = false;
+						qaInputfocusIn = false;
+					}
+				}
+			}
+			
+			public var qaInputfocusIn : Boolean = false;
+			
+			public function qafocusIn() : void 
+			{
+				qaInputfocusIn = true;
+			}
+			
+			public var qaInputVal;
+			public function qaInputChange() : void
+			{
+				qaInputVal = qaInput.text;
+			}
+			
+			public var fileUploadPopup : FileUploadPopup; 
+			
+		]]>
+	</fx:Script>
+	
+	<mx:HBox width="100%" height="100%">
+		
+		<mx:Form width="100%" height="100%">	
+			<mx:Spacer/>
+			<s:Label text="Add/Update Actuals " fontWeight="bold" textAlign="center"/>
+			<mx:FormItem label="Reference No:">
+				<s:TextInput id="refInput" width="220" text="{EPMSSingleton.getInstance().selectedOutput.refno}"/>
+			</mx:FormItem>
+			<mx:FormItem label="Budget Spend:">
+				<s:TextInput id="totBudSpendInput" width="220" />
+			</mx:FormItem>
+			<mx:FormItem label="Reasons For Not Achieving Target:" 
+						visible="false">
+				<s:TextInput  width="160" visible="false"/>
+			</mx:FormItem>
+			
+			<s:Label text="Enter Quaterly Actuals " fontWeight="bold" textAlign="center"/>
+			<mx:FormItem id="quatorLbl0">
+				<s:TextInput id="targetInput" width="220" enabled="false" editable="false"/>
+			</mx:FormItem>
+			<mx:FormItem id="quatorLbl">
+				<mx:HBox >
+				<s:TextInput id="qaInput" width="220" focusOut="qafocusOut()" focusIn="qafocusIn()"
+								  change="qaInputChange()"/>
+				</mx:HBox >
+			</mx:FormItem>
+			
+			<mx:Canvas width="400" height="300" horizontalCenter="0" verticalCenter="0">
+				<content:FileUploadPopup
+					width="100%" height="100%"
+					uploadComplete="Alert.show('File(s) have been uploaded.', 'Upload successful')" 
+					uploadIOError="Alert.show('IO Error in uploading file.', 'Error')" 
+					uploadSecurityError="Alert.show('Security Error in uploading file.', 'Error')"
+				/>
+			</mx:Canvas>
+			
+			<!--If quator target not reached-->
+			<mx:FormItem label="Reasons For Not Achieving Target:" 
+						 includeInLayout="{EPMSSingleton.getInstance().quatorTargetNotMet}">
+				<s:TextInput id="reasonNotReachingTargetInput" width="220" includeInLayout="{EPMSSingleton.getInstance().quatorTargetNotMet}"/>
+			</mx:FormItem>
+			<mx:FormItem label="Planned Corrective Action:"
+						 includeInLayout="{EPMSSingleton.getInstance().quatorTargetNotMet}">
+				<s:TextInput id="corActionInput" width="220" includeInLayout="{EPMSSingleton.getInstance().quatorTargetNotMet}"/>
+			</mx:FormItem>
+			<mx:FormItem label="Correctice Action Start Date:" includeInLayout="{EPMSSingleton.getInstance().quatorTargetNotMet}">
+				<mx:DateField id="startDInput" width="160" formatString="{Helper.dateFormat}" includeInLayout="{EPMSSingleton.getInstance().quatorTargetNotMet}" />
+			</mx:FormItem>
+			<mx:FormItem label="Correctice Action End Date:" includeInLayout="{EPMSSingleton.getInstance().quatorTargetNotMet}">
+				<mx:DateField id="endDInput" width="160" formatString="{Helper.dateFormat}" includeInLayout="{EPMSSingleton.getInstance().quatorTargetNotMet}" />
+			</mx:FormItem>
+			
+			<mx:HBox width="100%" horizontalAlign="center" paddingLeft="0">
+				<mx:Canvas id="submitBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="doUpdateOutcome()">
+					<mx:Image source="@Embed('images/BtnSubmit.png')"/>
+				</mx:Canvas>
+				<mx:Canvas id="refreshBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="cancel()">
+					<mx:Image source="@Embed('images/BtnCancel.png')"/>
+				</mx:Canvas>
+			</mx:HBox>
+		</mx:Form>
+		
+	</mx:HBox>
+	
+</s:TitleWindow >

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:Canvas xmlns:mx="http://www.adobe.com/2006/mxml"
+	width="100%" height="20"
+	horizontalScrollPolicy="off" verticalScrollPolicy="off"
+	backgroundColor="#FFFFFF">
+	
+	<mx:Script>
+        <![CDATA[
+        	import za.co.interfileps.matrix.logbook.manager.ConnectionManager;
+        	
+			private var cm:ConnectionManager = ConnectionManager.getInstance();
+
+        ]]>
+    </mx:Script>
+    
+    <!-- ONLINE -->
+    <mx:ApplicationControlBar left="0" right="0" top="0" height="20" fillAlphas="[1.0, 1.0]" fillColors="[#5A5A5A, #ACACAC]" cornerRadius="0">
+	</mx:ApplicationControlBar>
+	<mx:HBox id="online" width="100%" height="20" verticalAlign="middle" verticalScrollPolicy="off" horizontalScrollPolicy="off" horizontalGap="5" 
+		paddingLeft="5" paddingTop="0">
+		<mx:Label height="16" text="CONNECTION STATUS" fontFamily="myFontFamily" color="#FFFFFF" fontSize="12" width="124"/>
+		<mx:Label height="16" text="{cm.lable}" fontFamily="myFontFamily" color="#FFFFFF" fontSize="12" width="92" textAlign="right"/>
+		<mx:Image width="18" height="18" id="connImage" source="{cm.image}">
+			
+		</mx:Image>
+	</mx:HBox>
+</mx:Canvas>

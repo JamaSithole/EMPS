@@ -1,0 +1,233 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow  xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%"
+			   creationComplete="init()" title="Add Plan"
+			   close="cancel()">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		
+	</fx:Declarations>
+	
+	<fx:Style source="style/epms.css"/>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.repository.Plantbl;
+			import co.za.ngwane.epms.repository.Progtbl; EPMSSingleton
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.helper.Status;
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.repository.Userepms;
+			
+			import flashx.textLayout.formats.Float;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.controls.Text;
+			import mx.core.FlexGlobals;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			import spark.events.IndexChangeEvent;
+			
+			public function init() : void
+			{
+				PopUpManager.centerPopUp(this);
+			}
+			
+			public function cancel() : void
+			{
+				PopUpManager.removePopUp(this);
+			}
+			
+			public function seacrh():void
+			{
+				
+			}
+			
+			public var errorMSG:String = new String();
+			public function isValid():Boolean
+			{
+				if(nameInput.text == "")
+				{
+					errorMSG += "Please Enter Name.\n";
+				}
+				if(allocatedBudget.text == "" || !Helper.isNumeric(allocatedBudget.text)){
+					errorMSG += "Budget Allocated Must Be Numeric.\n";
+				}
+				if(errorMSG.length > 3) 
+				{
+					return false;
+				}
+				else
+				{
+					return true;
+				}
+			}
+
+			public function doSubmitPlan():void
+			{
+				if(isValid()) 
+				{
+					var plan : co.za.ngwane.epms.repository.Plantbl = new co.za.ngwane.epms.repository.Plantbl();
+					var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+					
+					plan.name = nameInput.text;
+					plan.currp = true;
+					plan.description = descInput.text;
+					plan.endd = endDInput.selectedDate;
+					plan.startd = startDInput.selectedDate;
+					
+					plan.q1endd = q1EndDInput.selectedDate;
+					plan.q1startd = q1StartDInput.selectedDate;
+					
+					plan.q2endd = q2EndDInput.selectedDate;
+					plan.q2startd = q2StartDInput.selectedDate;
+					
+					plan.q3endd = q3EndDInput.selectedDate;
+					plan.q3startd = q3StartDInput.selectedDate;
+					
+					plan.q4endd = q4EndDInput.selectedDate;
+					plan.q4startd = q4StartDInput.selectedDate;
+					plan.budget = parseFloat(allocatedBudget.text);
+					
+					remoteObject.destination = "planOperations";
+					remoteObject.addPlan(plan)
+					remoteObject.addEventListener(FaultEvent.FAULT, doSubmitPlanFaultHandler);
+					remoteObject.addEventListener(ResultEvent.RESULT, doSubmitPlanResultHandler);
+					cursorManager.setBusyCursor();
+				}
+				else
+				{
+					Alert.show(errorMSG,"Validation Failure", 4, null, null, Helper.noEntryImg);
+					errorMSG = "";
+				}
+			}
+			
+			public function doSubmitPlanResultHandler(event:ResultEvent):void
+			{
+				var result : Plantbl = event.result as Plantbl;
+				if(result.id > 0)
+				{	
+					Alert.show("Plan added successfully.","Successful", 4, null, null, Helper.accept);
+					
+					FlexGlobals.topLevelApplication.login.getAllPlans();
+					cancel();
+					clearForm();
+				}
+				else
+				{
+					Alert.show("Failed to add plan.","Error", 4, null, null, Helper.noEntryImg);
+				}
+				cursorManager.removeBusyCursor();
+			}
+			
+			var dotSeparator : String = ".";
+			
+			public function clearForm() : void
+			{
+				nameInput.text = "";
+			}
+			
+			public static function doSubmitPlanFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to add plan.","Failure", 4, null, null, Helper.noEntryImg);
+			}
+
+		]]>
+	</fx:Script>
+	
+	<mx:HBox width="100%" height="100%">
+		<mx:Canvas  width="30%" height="100%"/>
+		
+		<mx:Form width="80%" height="100%">
+			<mx:Spacer/>
+			<s:Label text="Enter Plan's Info " fontWeight="bold" textAlign="center"/>
+			<mx:FormItem label="Name:" >
+				<s:TextInput id="nameInput" width="220"/>
+			</mx:FormItem>
+			<mx:FormItem label="Description:">
+				<s:TextInput id="descInput" width="220" height="61"/>
+			</mx:FormItem>
+			
+			<mx:HBox>
+				<mx:FormItem label="Start Date:">
+					<mx:DateField id="startDInput" width="110" 
+								  formatString="{Helper.dateFormat}"/>
+				</mx:FormItem>
+				<mx:FormItem label="End Date:">
+					<mx:DateField id="endDInput" width="110" 
+								  formatString="{Helper.dateFormat}"/>
+				</mx:FormItem>
+			</mx:HBox>
+			
+			<mx:HBox>
+				<mx:FormItem label="Quator 1 Start Date:">
+					<mx:DateField id="q1StartDInput" width="110" 
+								  formatString="{Helper.dateFormat}"/>
+				</mx:FormItem>
+				<mx:FormItem label="Quator 1 End Date:">
+					<mx:DateField id="q1EndDInput" width="110" 
+								  formatString="{Helper.dateFormat}"/>
+				</mx:FormItem>
+			</mx:HBox>
+			
+			<mx:HBox>
+				<mx:FormItem label="Quator 2 Start Date:">
+					<mx:DateField id="q2StartDInput" width="110" 
+								  formatString="{Helper.dateFormat}"/>
+				</mx:FormItem>
+				<mx:FormItem label="Quator 2 End Date:">
+					<mx:DateField id="q2EndDInput" width="110" 
+								  formatString="{Helper.dateFormat}"/>
+				</mx:FormItem>
+			</mx:HBox>
+			
+			<mx:HBox>
+				<mx:FormItem label="Quator 3 Start Date:">
+					<mx:DateField id="q3StartDInput" width="110" 
+								  formatString="{Helper.dateFormat}"/>
+				</mx:FormItem>
+				<mx:FormItem label="Quator 3 End Date:">
+					<mx:DateField id="q3EndDInput" width="110" 
+								  formatString="{Helper.dateFormat}"/>
+				</mx:FormItem>
+			</mx:HBox>
+			
+			<mx:HBox>
+				<mx:FormItem label="Quator 4 Start Date:">
+					<mx:DateField id="q4StartDInput" width="110" 
+								  formatString="{Helper.dateFormat}"/>
+				</mx:FormItem>
+				<mx:FormItem label="Quator 4 End Date:">
+					<mx:DateField id="q4EndDInput" width="110" 
+								  formatString="{Helper.dateFormat}"/>
+				</mx:FormItem>
+			</mx:HBox>
+			
+			<mx:FormItem label="Budget Allocated:">
+				<s:TextInput id="allocatedBudget" width="160" />
+			</mx:FormItem>
+
+			<mx:HBox width="100%" horizontalAlign="center">
+				<mx:Canvas id="submitBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="doSubmitPlan()">
+					<mx:Image source="@Embed('images/BtnSubmit.png')"/>
+				</mx:Canvas>
+				<mx:Canvas id="refreshBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="cancel()">
+					<mx:Image source="@Embed('images/BtnCancel.png')"/>
+				</mx:Canvas>
+			</mx:HBox>
+		</mx:Form>
+		
+		<mx:Canvas  width="10%" height="100%"/>
+	</mx:HBox>
+	
+</s:TitleWindow >

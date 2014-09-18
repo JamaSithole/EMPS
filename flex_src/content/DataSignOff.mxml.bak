@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox verticalGap="0" color="#004B36" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" xmlns:utils="utils.*"
+		 creationComplete="init()" show="getAll()" xmlns:content="content.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.repository.Projtbl;
+			import co.za.ngwane.epms.repository.Qoupd;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.core.IFlexDisplayObject;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			import spark.events.IndexChangeEvent;
+			
+			[Bindable]
+			public var progObj : Object;
+			
+			public function init():void
+			{
+				getAll();
+			}
+			
+			private function setWidth() : void 
+			{
+				
+			}
+			
+			private function clearInnerText():void
+			{
+				if(searchInput.text == "< Enter your search here >")
+				{
+					searchInput.text = "";
+				}
+			}
+			
+			public var loadPopUp:IFlexDisplayObject; 
+			//public var myPopUp:AddProj; 
+			
+			public function refresh() : void 
+			{
+				//getAllProjs();
+				searchInput.text = "< Enter your search here >";
+			}
+			
+			public function getSelectedOutput() : void
+			{
+				EPMSSingleton.getInstance().selectedQoup = dataSignOffListDG.selectedItem as Qoupd;
+				//(this.parent as ViewStack).selectedIndex = 3;
+				(this.parent as ViewStack).selectedChild = FlexGlobals.topLevelApplication.dataSignOffContent.dataSignOffDetVS;
+			}
+			
+			public function doSignOffReject() : void
+			{
+				if(EPMSSingleton.getInstance().selectedDataSignOff.length > 1)
+				{
+					Alert.show("Please do note that you can only reject one at the time.","Failure", 4, null, null, Helper.noEntryImg);
+				}
+				else
+				{
+					submitSignOffReject();
+				}
+			}
+			
+			public function submitSignOffReject() : void
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				remoteObject.destination = "outputUpdateOperations";
+				remoteObject.addEventListener(FaultEvent.FAULT,  submitSignOffRejectFaultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT,  submitSignOffRejectResultHandler);
+				remoteObject.rejectOffOutput(EPMSSingleton.getInstance().selectedDataSignOff);
+				cursorManager.setBusyCursor();
+			}
+			
+			public static function  submitSignOffRejectFaultHandler(event:FaultEvent):void 
+			{
+				Alert.show( ObjectUtil.toString(event.fault) );
+				//Alert.show("System failure please contact your administrator if this continues.","Failure", 4, null, null, Helper.noEntryImg);
+			}
+			
+			public function  submitSignOffRejectResultHandler(event:ResultEvent):void
+			{
+				//Alert.show("event.result: \n"+event.result);
+				var results : Boolean= (event.result as Boolean);
+				if(results)
+				{
+					Alert.show("Data rejected successfully.","Successful", 4, null, null, Helper.accept);
+					EPMSSingleton.getInstance().selectedDataSignOff = new ArrayCollection;
+					init();
+				}
+				else
+				{
+					Alert.show("Failed to sign off data.","Failure", 4, null, null, Helper.noEntryImg);
+				}
+				
+				cursorManager.removeBusyCursor();
+			}
+			
+			public function doSignOff() : void
+			{
+				if(EPMSSingleton.getInstance().selectedDataSignOff.length == 0)
+				{
+					Alert.show("Please select at least one item to sign off.","Failure", 4, null, null, Helper.noEntryImg);
+				}
+				else
+				{
+					submitSignOff();
+				}
+			}
+			
+			public function submitSignOff() : void
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				remoteObject.destination = "outputUpdateOperations";
+				remoteObject.addEventListener(FaultEvent.FAULT,  submitSignOffFaultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT,  submitSignOffResultHandler);
+				remoteObject.signOffOutput(EPMSSingleton.getInstance().selectedDataSignOff);
+				cursorManager.setBusyCursor();
+			}
+			
+			public static function  submitSignOffFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to load ndp please contact your administrator if this continues.","Failure", 4, null, null, Helper.noEntryImg);
+			}
+			
+			public function  submitSignOffResultHandler(event:ResultEvent):void
+			{
+				//Alert.show("event.result: \n"+event.result);
+				var results : Boolean= (event.result as Boolean);
+				if(results)
+				{
+					Alert.show("Data signed off successfully.","Successful", 4, null, null, Helper.accept);
+					EPMSSingleton.getInstance().selectedDataSignOff = new ArrayCollection;
+					init();
+					FlexGlobals.topLevelApplication.dataSignOffContent.dataSignOffVS.init();
+				}
+				else
+				{
+					Alert.show("Failed to sign off data.","Failure", 4, null, null, Helper.noEntryImg);
+				}
+				
+				cursorManager.removeBusyCursor();
+			}
+			
+			public function getAll() : void
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				remoteObject.destination = "outputUpdateOperations";
+				remoteObject.addEventListener(FaultEvent.FAULT,  getAllFaultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT,  getAllResultHandler);
+				remoteObject.getAllPendingSignOff(EPMSSingleton.getInstance().currentUser);
+				//cursorManager.setBusyCursor();
+			}
+			
+			public static function  getAllFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to load ndp please contact your administrator if this continues.","Failure", 4, null, null, Helper.noEntryImg);
+			}
+			
+			public var dataSignOffList:ArrayCollection = EPMSSingleton.getInstance().dataSignOffList;
+			
+			public function  getAllResultHandler(event:ResultEvent):void
+			{
+				//Alert.show("event.result: \n"+event.result);
+				dataSignOffList = (event.result as ArrayCollection);
+				EPMSSingleton.getInstance().dataSignOffList = dataSignOffList;
+				
+				//cursorManager.removeBusyCursor();
+			}
+			
+			
+		]]>
+	</fx:Script>
+	<mx:VBox verticalGap="0" width="100%" height="100%" paddingLeft="5" paddingBottom="5" paddingRight="5" paddingTop="5">
+		
+		<mx:Canvas x="80" y="49" width="100%" height="45" borderVisible="false">
+			<s:HGroup width="100%">
+				<s:VGroup>
+					<s:TextInput id="searchInput" x="68" y="7" width="186" click="clearInnerText()"
+								 prompt="search for output"/>
+				</s:VGroup>
+			</s:HGroup>
+		</mx:Canvas>
+		
+		<mx:Spacer/>
+		
+		<s:HGroup width="100%" paddingBottom="5">
+			<s:Label height="25" fontWeight="bold" paddingBottom="5" paddingLeft="0" paddingRight="5"
+					 paddingTop="5" text="There are  {EPMSSingleton.getInstance().dataSignOffList.length} items pending sign off"/>
+			<mx:Canvas width="80%" borderVisible="false"/>
+			<mx:Canvas id="amendBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="doSignOffReject()">
+				<mx:Image source="@Embed('images/BtnAmend.png')"/>
+			</mx:Canvas>
+			<mx:Canvas id="addDeptBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="doSignOff()">
+				<mx:Image source="@Embed('images/BtnSubmit.png')"/>
+			</mx:Canvas>
+		</s:HGroup>
+		
+		<mx:DataGrid id="dataSignOffListDG" height="100%" width="100%" dataProvider="{EPMSSingleton.getInstance().dataSignOffList}"
+					doubleClickEnabled="true" doubleClick="getSelectedOutput()">
+			<mx:columns>
+				<mx:DataGridColumn headerText="INDICATOR" dataField="outputtblid.indicator" id="indicatorDC" />
+				<mx:DataGridColumn headerText="PROGRAM" dataField="outputtblid.outcometblid.projtblid.progtblid.name" id="programDC"/>
+				<mx:DataGridColumn headerText="PROJECT" dataField="outputtblid.outcometblid.projtblid.name" id="projectDC"/>
+				<mx:DataGridColumn headerText="QUATER" dataField="quo" id="quaterDC"/>
+				<mx:DataGridColumn headerText="TARGET" dataField="currentqTarget" id="targetDC"/>
+				<mx:DataGridColumn headerText="ACTUAL" dataField="qscore" id="actualDC"/>
+				<mx:DataGridColumn headerText="STATUS" dataField="statusDescription" id="statDC"/>
+				<mx:DataGridColumn itemRenderer="content.DataSignOffItemRender" visible="true" headerText=""/>
+			</mx:columns>
+		</mx:DataGrid>
+	</mx:VBox>
+	
+</mx:VBox>
+

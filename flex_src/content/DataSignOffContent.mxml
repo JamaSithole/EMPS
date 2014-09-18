@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox verticalGap="0" color="#004B36" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" xmlns:utils="utils.*" xmlns:content="content.*"
+		 >
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Style>
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		@namespace utils "utils.*";
+		@namespace content "content.*";
+		
+		s|LinkBar
+		{
+			skinClass: ClassReference("skins.CustomButtonSkin");
+		}
+		
+	</fx:Style>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			
+		]]>
+	</fx:Script>
+	
+	<mx:Panel  width="100%" height="100%" 
+			   layout="absolute" title="Epsitech Performance Management Suite (ePMS)" creationPolicy="all">
+		<mx:LinkBar dataProvider="{sectionAdminVS}" color="#0B1FE0" fontWeight="bold" separatorWidth="0"/>
+		
+		<mx:ViewStack horizontalCenter="0" y="30" id="sectionAdminVS" width="98%" height="95%" borderStyle="solid">
+			
+			<!--	Listing data to be signed off	-->
+			<content:DataSignOff id="dataSignOffVS" width="100%" height="100%" label="{EPMSSingleton.getInstance().dataSignOffLbl}"/>
+			<content:DataSignOffDet id="dataSignOffDetVS" width="100%" height="100%" />
+			
+		</mx:ViewStack>
+	</mx:Panel>
+	
+</mx:VBox>
+

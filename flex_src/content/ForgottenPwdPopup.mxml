@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow  xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%"
+			   creationComplete="init()" title="Reset Password"
+			   close="closeWindow()">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.repository.Userepms;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil; 
+			
+			[Bindable]
+			public var DataGridName:Object;
+			
+			[Bindable]
+			public var obj:Object;
+			
+			[Bindable]
+			public var DataGridNameAC:ArrayCollection; 
+			
+			public function init() : void
+			{
+				PopUpManager.centerPopUp(this);
+			}
+			
+			public function closeWindow():void
+			{ 
+				PopUpManager.removePopUp(this);
+			} 
+			
+			public function resetPwd(): void
+			{
+				var user : co.za.ngwane.epms.repository.Userepms  = new co.za.ngwane.epms.repository.Userepms();
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				user.username = usernameInput.text; 
+				user.idnumber = idNumberInput.text;
+				
+				remoteObject.destination = "userOperations";
+				remoteObject.addEventListener(FaultEvent.FAULT, faultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT, userLoginResultHandler);
+				remoteObject.forgottenPassword(user);
+				cursorManager.showCursor();
+			}
+			
+			public static function faultHandler(event:FaultEvent):void 
+			{
+				Alert.show( ObjectUtil.toString(event.fault) );
+			}
+			
+			[Bindable]
+			public var loggedInUser : co.za.ngwane.epms.repository.Userepms = new co.za.ngwane.epms.repository.Userepms;
+			
+			public function userLoginResultHandler(event:ResultEvent):void
+			{
+				loggedInUser = (event.result as co.za.ngwane.epms.repository.Userepms);
+				if(loggedInUser.name != null && loggedInUser.surname != null)
+				{
+					Alert.show("Password restored successful please check your email for temporary password.","Successful", 4, null, null,Helper.accept);
+					closeWindow();
+				}
+				else
+				{
+					Alert.show("Please make sure your username and idnumber are correct.","User Not Found", 4, null, null,Helper.noEntryImg);
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<mx:VBox  horizontalCenter="0" verticalCenter="0">
+		<mx:Canvas width="100%" height="100%">
+			<!--<mx:Image horizontalCenter="0" verticalCenter="0" source="images/MFG_Logo.png" right="0"/>	-->
+		</mx:Canvas>		
+		<mx:Canvas width="400" height="175" cornerRadius="10">
+			<s:BorderContainer width="100%" height="100%" 
+							  >
+			<mx:Form horizontalCenter="0" verticalCenter="0" chromeColor="#3EE0C3">
+				<s:Label fontWeight="bold" fontSize="14" text="Fill in your username and id number below"/>
+				<mx:FormItem label="Username">
+					<s:TextInput color="#000000" id="usernameInput" width="176"/>
+				</mx:FormItem>
+				<mx:FormItem label="Id Number">
+					<s:TextInput color="#000000" id="idNumberInput" width="176"/>
+				</mx:FormItem>
+				
+				<mx:HBox horizontalAlign="center" paddingLeft="30">					
+					<mx:Canvas useHandCursor="true" buttonMode="true" mouseChildren="false" click="resetPwd()">
+						<mx:Button click="resetPwd()" id="bntLogin" verticalCenter="0" horizontalCenter="0" width="10" height="10"/>
+						<mx:Image source="@Embed('images/BtnRestoreDB.png')"/>
+					</mx:Canvas>					
+					<mx:Canvas useHandCursor="true" buttonMode="true" mouseChildren="false" click="closeWindow()">
+						<mx:Image source="@Embed('images/BtnCancel.png')"/>
+					</mx:Canvas>
+				</mx:HBox>	
+			</mx:Form>
+				</s:BorderContainer>
+		</mx:Canvas>
+	</mx:VBox>	
+	
+</s:TitleWindow >

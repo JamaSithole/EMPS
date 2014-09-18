@@ -1,0 +1,87 @@
+package co.za.ngwane.epms.repository
+{
+	[Binable][RemoteClass(alias="co.za.ngwane.epms.repository.Outcometbl")]
+	public class Outcometbl
+	{
+		private var _id : Number;
+		private var _name : String;
+		private var _description : String;
+		private var _val : Number;
+		private var _projtblid : Projtbl;
+		
+		private var _abudget : Number;
+		private var _abalance : Number;
+		
+		public function get id():Number
+		{
+			return _id;
+		}
+
+		public function set id(value:Number):void
+		{
+			_id = value;
+		}
+
+		public function get name():String
+		{
+			return _name;
+		}
+
+		public function set name(value:String):void
+		{
+			_name = value;
+		}
+
+		public function get description():String
+		{
+			return _description;
+		}
+
+		public function set description(value:String):void
+		{
+			_description = value;
+		}
+
+		public function get val():Number
+		{
+			return _val;
+		}
+
+		public function set val(value:Number):void
+		{
+			_val = value;
+		}
+
+		public function get projtblid():Projtbl
+		{
+			return _projtblid;
+		}
+
+		public function set projtblid(value:Projtbl):void
+		{
+			_projtblid = value;
+		}
+
+		public function get abudget():Number
+		{
+			return _abudget;
+		}
+
+		public function set abudget(value:Number):void
+		{
+			_abudget = value;
+		}
+
+		public function get abalance():Number
+		{
+			return _abalance;
+		}
+
+		public function set abalance(value:Number):void
+		{
+			_abalance = value;
+		}
+
+
+	}
+}

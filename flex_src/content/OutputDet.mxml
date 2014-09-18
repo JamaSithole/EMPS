@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:utils="utils.*"
+		 xmlns:content="content.*"
+		 width="100%" height="100%" color="#004B36" creationComplete="init()" show="init()"
+		 verticalGap="0">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Style source="style/epms.css"/>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.repository.Outputtbl;
+			import co.za.ngwane.epms.repository.Qoupd;
+			
+			import flashx.textLayout.formats.Float;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.controls.Text;
+			import mx.core.FlexGlobals;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			import spark.events.IndexChangeEvent;
+			
+			[Bindable]
+			public var idTypeObj : Object;
+			
+			[Bindable]
+			public var q1Obj : Qoupd;
+			[Bindable]
+			public var q2Obj : Qoupd;
+			[Bindable]
+			public var q3Obj : Qoupd;
+			[Bindable]
+			public var q4Obj : Qoupd;
+			
+			public function init() : void
+			{
+				//Alert.show(" EPMSSingleton.getInstance().selectedOutput.updates is : "+ EPMSSingleton.getInstance().selectedOutput.updates );
+				if(EPMSSingleton.getInstance().selectedOutput != null )
+				{
+					for each  ( var qObj : Qoupd in EPMSSingleton.getInstance().selectedOutput.updates )
+					{
+						if(qObj.quo == EPMSSingleton.getInstance().Q1 )
+						{ 
+							q1Obj = qObj;
+						}
+						else if(qObj.quo == EPMSSingleton.getInstance().Q2 )
+						{
+							q2Obj = qObj;
+						}
+						else if(qObj.quo == EPMSSingleton.getInstance().Q3 )
+						{
+							q3Obj = qObj;
+						}
+						else if(qObj.quo == EPMSSingleton.getInstance().Q4 )
+						{
+							q4Obj = qObj;
+						}
+					}
+					
+				}
+				
+					
+			}
+			
+			public function cancel() : void
+			{
+				PopUpManager.removePopUp(this);
+			}
+			
+			public function doBack() : void
+			{
+				//(this.parent as ViewStack).selectedIndex = 3;
+				(this.parent as ViewStack).selectedChild = FlexGlobals.topLevelApplication.sectionContent.outputVS;
+			}
+			
+			public var selectedAudStatus1 : String = "";
+			public var selectedAudStatus2 : String = "";
+			public var selectedAudStatus3 : String = "";
+			public var selectedAudStatus4 : String = "";
+			public function getSelectedAuditStatus(event:IndexChangeEvent):void
+			{
+				selectedAudStatus1 = auditStatus1Input.selectedItem;
+				selectedAudStatus2 = auditStatus2Input.selectedItem;
+				selectedAudStatus3 = auditStatus3Input.selectedItem;
+				selectedAudStatus4 = auditStatus4Input.selectedItem;
+			}
+			
+			public function doSubmit() : void
+			{
+			
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<mx:HBox width="100%" height="100%">
+		<mx:Canvas width="1%" height="100%"/>
+		
+		<mx:VBox width="100%">
+			<mx:Spacer/><mx:Spacer/>
+			<mx:Canvas width="100%" borderVisible="false">
+				<s:HGroup width="100%">
+					<mx:Canvas width="100%" borderVisible="false"/>
+					<mx:Canvas id="backTopBT" buttonMode="true" click="doBack()"
+							   mouseChildren="false" useHandCursor="true">
+						<mx:Image source="@Embed('images/BtnBack.png')"/>
+					</mx:Canvas>
+					
+					<mx:Spacer/>
+				</s:HGroup>
+			</mx:Canvas>
+			<mx:HBox width="100%">
+				<mx:Form width="80%">
+					<mx:Spacer/>
+					
+					<mx:FormItem label="Ref Number:">
+						<s:TextInput id="refnoInput" width="220" text="{EPMSSingleton.getInstance().selectedOutput.refno}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Department:">
+						<s:TextInput id="deptInput" width="220" text="{EPMSSingleton.getInstance().selectedOutput.outcometblid.projtblid.progtblid.sectionid.directorateid.deptid.name}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Project:">
+						<s:TextInput id="surnameInput" width="220" text="{EPMSSingleton.getInstance().selectedOutput.outcometblid.projtblid.name}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Total Budget:">
+						<s:TextInput id="totBudgetInput" width="220" text="{EPMSSingleton.getInstance().selectedOutput.totbud}"/>
+					</mx:FormItem>
+					<!--<mx:FormItem label="Owner:">
+						<s:TextInput id="ownerInput" width="220" text="{EPMSSingleton.getInstance().selectedOutput.}"/>
+					</mx:FormItem>-->
+					
+				</mx:Form>
+				
+				<mx:Form width="80%" height="100%">
+					<mx:Spacer/>
+					<mx:FormItem label="Section:">
+						<s:TextInput id="idNumberInput" width="220" text="{EPMSSingleton.getInstance().selectedOutput.outcometblid.projtblid.progtblid.sectionid.name}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Cluster:">
+						<s:TextInput id="contactNumberInput" width="220" text="{EPMSSingleton.getInstance().selectedOutput.outcometblid.projtblid.progtblid.sectionid.name}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Program:">
+						<s:TextInput id="progInput" width="220" text="{EPMSSingleton.getInstance().selectedOutput.outcometblid.projtblid.progtblid.name}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Budget Spend:">
+						<s:TextInput id="budgetSpendInput" width="220" text="{EPMSSingleton.getInstance().selectedOutput.budspend}"/>
+					</mx:FormItem>
+				</mx:Form>
+			</mx:HBox>
+			
+			<!--Quater 1-->
+			<mx:HBox>
+			<mx:HBox width="100%" borderAlpha="2" borderColor="#7DB3E4" borderStyle="solid"
+					 borderVisible="true">
+				<mx:Form width="25%" height="100%">
+					<mx:Spacer/>
+					<s:Label fontWeight="bold" text=" Quater 1" textAlign="center"/>
+					<mx:Spacer/>
+					
+					<mx:FormItem label="Target:">
+						<s:TextInput id="target1Input" width="90" text="{EPMSSingleton.getInstance().selectedOutput.q1}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Actual:">
+						<s:TextInput id="actual1Input" width="90" text="{EPMSSingleton.getInstance().selectedOutput.q1a}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Final Score:">
+						<s:TextInput id="finalScore1Input" width="90" text="{EPMSSingleton.getInstance().selectedOutput.q1fs}"/>
+					</mx:FormItem>
+					
+				</mx:Form>
+				
+				<mx:Form width="30%" height="100%" includeInLayout="{q1Obj.tmet}">
+					<mx:Spacer/>
+					
+					<s:Label visible="false" fontWeight="bold" text=" Quater 1" textAlign="center" includeInLayout="{q1Obj.tmet}"/>
+					
+					<mx:FormItem label="Reason For Failure:" includeInLayout="{q1Obj.tmet}">
+						<s:TextInput id="reasonFailure1Input" width="268" includeInLayout="{q1Obj.tmet}" text="{q1Obj.reasonf}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Planned Action:" includeInLayout="{q1Obj.tmet}">
+						<s:TextInput id="plandAction1Input" width="268" includeInLayout="{q1Obj.tmet}" text="{q1Obj.coraction}"/>
+					</mx:FormItem>
+					
+					<mx:FormItem label="Start Date:" includeInLayout="{q1Obj.tmet}">
+						<mx:DateField id="startD1Input" width="110" enabled="false" formatString="{Helper.dateFormat}"
+									  includeInLayout="{q1Obj.tmet}" text="{q1Obj.pastartd}"
+									  selectedDate="{new Date(q1Obj.pastartd)}"/>
+					</mx:FormItem>
+					<mx:FormItem label="End Date:" includeInLayout="{q1Obj.tmet}">
+						<mx:DateField id="endD1Input" width="110" enabled="false" formatString="{Helper.dateFormat}"
+									  includeInLayout="{q1Obj.tmet}" text="{q1Obj.paendd}"
+									  selectedDate="{new Date(q1Obj.paendd)}"/>
+					</mx:FormItem>
+					
+				</mx:Form>
+				
+				<mx:Form width="20%" height="100%">
+					<mx:Spacer/>
+					<s:Label visible="false" fontWeight="bold"  textAlign="center"/>
+					<mx:FormItem label="Internal Audit Status:" includeInLayout="{q1Obj.tmet}">
+						<s:DropDownList id="auditStatus1Input" width="160" change="getSelectedAuditStatus(event)" dataProvider="{EPMSSingleton.getInstance().projectNameList}" prompt = "Select Audit Status"
+										includeInLayout="{q1Obj.tmet}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Comment:" includeInLayout="{q1Obj.tmet}">
+						<s:TextInput id="auditComment1Input" width="220" includeInLayout="{q1Obj.tmet}" text="{q1Obj.comment}"/>
+					</mx:FormItem>
+					
+				</mx:Form>
+				
+			</mx:HBox>
+			<mx:Canvas visible="false" width="10%"/>
+			</mx:HBox>
+			
+			<!--Quater 2-->
+			<mx:HBox>
+				<mx:HBox width="100%" borderAlpha="2" borderColor="#7DB3E4" borderStyle="solid"
+						 borderVisible="true">
+					<mx:Form width="25%" height="100%">
+						<mx:Spacer/>
+						<s:Label fontWeight="bold" text=" Quater 2" textAlign="center"/>
+						<mx:Spacer/>
+						
+						<mx:FormItem label="Target:">
+							<s:TextInput id="target2Input" width="90" text="{EPMSSingleton.getInstance().selectedOutput.q2}"/>
+						</mx:FormItem>
+						<mx:FormItem label="Actual:">
+							<s:TextInput id="actual2Input" width="90" text="{EPMSSingleton.getInstance().selectedOutput.q2a}"/>
+						</mx:FormItem>
+						<mx:FormItem label="Final Score:">
+							<s:TextInput id="finalScore2Input" width="90" text="{EPMSSingleton.getInstance().selectedOutput.q2fs}"/>
+						</mx:FormItem>
+						
+					</mx:Form>
+					
+					<mx:Form width="30%" height="100%">
+						<mx:Spacer/>
+						
+						<s:Label visible="false" fontWeight="bold" text=" Quater 1" textAlign="center"/>
+						
+						<mx:FormItem label="Reason For Failure:">
+							<s:TextInput id="reasonFailure2Input" width="268" text="{q2Obj.reasonf}"/>
+						</mx:FormItem>
+						<mx:FormItem label="Planned Action:">
+							<s:TextInput id="plandAction2Input" width="268" text="{q2Obj.coraction}"/>
+						</mx:FormItem>
+						
+						<mx:FormItem label="Start Date:" includeInLayout="{q1Obj.tmet}">
+							<mx:DateField id="startD2Input" width="110" enabled="false" formatString="{Helper.dateFormat}"
+										  includeInLayout="{q2Obj.tmet}" text="{q2Obj.pastartd}"
+										  selectedDate="{new Date(q2Obj.pastartd)}"/>
+						</mx:FormItem>
+						<mx:FormItem label="End Date:" includeInLayout="{q2Obj.tmet}">
+							<mx:DateField id="endD2Input" width="110" enabled="false" formatString="{Helper.dateFormat}"
+										  includeInLayout="{q2Obj.tmet}" text="{q2Obj.paendd}"
+										  selectedDate="{new Date(q2Obj.paendd)}"/>
+						</mx:FormItem>
+						
+					</mx:Form>
+					
+					<mx:Form width="20%" height="100%">
+						<mx:Spacer/>
+						<s:Label visible="false" fontWeight="bold" text=" Quater 1" textAlign="center"/>
+						<mx:FormItem label="Internal Audit Status:">
+							<!--<s:TextInput id="auditStatus2Input" width="268"/>-->
+							<s:DropDownList id="auditStatus2Input" width="160" change="getSelectedAuditStatus(event)" dataProvider="{EPMSSingleton.getInstance().projectNameList}" prompt = "Select Audit Status"/>
+						</mx:FormItem>
+						<mx:FormItem label="Comment:">
+							<s:TextInput id="auditComment2Input" width="220" text="{q2Obj.comment}"/>
+						</mx:FormItem>
+						
+					</mx:Form>
+					
+				</mx:HBox>
+				<mx:Canvas visible="false" width="10%"/>
+			</mx:HBox>
+			
+			<!--Quater 3-->
+			<mx:HBox>
+				<mx:HBox width="100%" borderAlpha="2" borderColor="#7DB3E4" borderStyle="solid"
+						 borderVisible="true">
+					<mx:Form width="25%" height="100%">
+						<mx:Spacer/>
+						<s:Label fontWeight="bold" text=" Quater 3" textAlign="center"/>
+						<mx:Spacer/>
+						
+						<mx:FormItem label="Target:">
+							<s:TextInput id="target3Input" width="90" text="{EPMSSingleton.getInstance().selectedOutput.q3}"/>
+						</mx:FormItem>
+						<mx:FormItem label="Actual:">
+							<s:TextInput id="actual3Input" width="90" text="{EPMSSingleton.getInstance().selectedOutput.q3a}"/>
+						</mx:FormItem>
+						<mx:FormItem label="Final Score:">
+							<s:TextInput id="finalScore3Input" width="90" text="{EPMSSingleton.getInstance().selectedOutput.q3fs}"/>
+						</mx:FormItem>
+						
+					</mx:Form>
+					
+					<mx:Form width="30%" height="100%">
+						<mx:Spacer/>
+						
+						<s:Label visible="false" fontWeight="bold" text=" Quater 1" textAlign="center"/>
+						
+						<mx:FormItem label="Reason For Failure:">
+							<s:TextInput id="reasonFailure3Input" width="268" text="{q3Obj.reasonf}"/>
+						</mx:FormItem>
+						<mx:FormItem label="Planned Action:">
+							<s:TextInput id="plandAction3Input" width="268" text="{q3Obj.coraction}"/>
+						</mx:FormItem>
+						
+						<mx:FormItem label="Start Date:" includeInLayout="{q1Obj.tmet}">
+							<mx:DateField id="startD3Input" width="110" enabled="false" formatString="{Helper.dateFormat}"
+										  includeInLayout="{q3Obj.tmet}" text="{q3Obj.pastartd}"
+										  selectedDate="{new Date(q3Obj.pastartd)}"/>
+						</mx:FormItem>
+						<mx:FormItem label="End Date:" includeInLayout="{q3Obj.tmet}">
+							<mx:DateField id="endD3Input" width="110" enabled="false" formatString="{Helper.dateFormat}"
+										  includeInLayout="{q3Obj.tmet}" text="{q3Obj.paendd}"
+										  selectedDate="{new Date(q3Obj.paendd)}"/>
+						</mx:FormItem>
+						
+					</mx:Form>
+					
+					<mx:Form width="20%" height="100%">
+						<mx:Spacer/>
+						<s:Label visible="false" fontWeight="bold" text=" Quater 1" textAlign="center"/>
+						<mx:FormItem label="Internal Audit Status:">
+							<s:DropDownList id="auditStatus3Input" width="160" change="getSelectedAuditStatus(event)" dataProvider="{EPMSSingleton.getInstance().projectNameList}" prompt = "Select Audit Status"/>
+						</mx:FormItem>
+						<mx:FormItem label="Comment:">
+							<s:TextInput id="auditComment3Input" width="220" text="{q3Obj.comment}"/>
+						</mx:FormItem>
+						
+					</mx:Form>
+					
+				</mx:HBox>
+				<mx:Canvas visible="false" width="10%"/>
+			</mx:HBox>
+			
+			<!--Quater 4-->
+			<mx:HBox>
+				<mx:HBox width="100%" borderAlpha="2" borderColor="#7DB3E4" borderStyle="solid"
+						 borderVisible="true">
+					<mx:Form width="25%" height="100%">
+						<mx:Spacer/>
+						<s:Label fontWeight="bold" text=" Quater 4" textAlign="center"/>
+						<mx:Spacer/>
+						
+						<mx:FormItem label="Target:">
+							<s:TextInput id="target4Input" width="90" text="{EPMSSingleton.getInstance().selectedOutput.q4}"/>
+						</mx:FormItem>
+						<mx:FormItem label="Actual:">
+							<s:TextInput id="actual4Input" width="90" text="{EPMSSingleton.getInstance().selectedOutput.q4a}"/>
+						</mx:FormItem>
+						<mx:FormItem label="Final Score:">
+							<s:TextInput id="finalScore4Input" width="90" text="{EPMSSingleton.getInstance().selectedOutput.q4fs}"/>
+						</mx:FormItem>
+						
+					</mx:Form>
+					
+					<mx:Form width="30%" height="100%" >
+						<mx:Spacer/>
+						
+						<s:Label visible="false" fontWeight="bold" text=" Quater 1" textAlign="center"/>
+						
+						<mx:FormItem label="Reason For Failure:" >
+							<s:TextInput id="reasonFailure4Input" width="268" text="{q4Obj.reasonf}"/>
+						</mx:FormItem>
+						<mx:FormItem label="Planned Action:">
+							<s:TextInput id="plandAction4Input" width="268" text="{q4Obj.coraction}"/>
+						</mx:FormItem>
+						
+						<mx:FormItem label="Start Date:" includeInLayout="{q1Obj.tmet}">
+							<mx:DateField id="startD4Input" width="110" enabled="false" formatString="{Helper.dateFormat}"
+										  includeInLayout="{q4Obj.tmet}" text="{q4Obj.pastartd}"
+										  selectedDate="{new Date(q4Obj.pastartd)}"/>
+						</mx:FormItem>
+						<mx:FormItem label="End Date:" includeInLayout="{q4Obj.tmet}">
+							<mx:DateField id="endD4Input" width="110" enabled="false" formatString="{Helper.dateFormat}"
+										  includeInLayout="{q4Obj.tmet}" text="{q4Obj.paendd}"
+										  selectedDate="{new Date(q4Obj.paendd)}"/>
+						</mx:FormItem>
+						
+					</mx:Form>
+					
+					<mx:Form width="20%" height="100%">
+						<mx:Spacer/>
+						<s:Label visible="false" fontWeight="bold" text=" Quater 1" textAlign="center"/>
+						<mx:FormItem label="Internal Audit Status:">
+							<s:DropDownList id="auditStatus4Input" width="160" change="getSelectedAuditStatus(event)" dataProvider="{EPMSSingleton.getInstance().projectNameList}" prompt = "Select Audit Status"/>
+						</mx:FormItem>
+						<mx:FormItem label="Comment:">
+							<s:TextInput id="auditComment4Input" width="220" text="{q4Obj.comment}"/>
+						</mx:FormItem>
+						
+					</mx:Form>
+					
+				</mx:HBox>
+				<mx:Canvas visible="false" width="10%"/>
+			</mx:HBox>
+						
+			<mx:HBox width="10%" horizontalAlign="center">
+				<mx:Canvas id="submitBT" buttonMode="true" click="doSubmit()"
+						   mouseChildren="false" useHandCursor="true">
+					<mx:Image source="@Embed('images/BtnSubmit.png')"/>
+				</mx:Canvas>
+				<mx:Canvas id="backBT" buttonMode="true" click="doBack()"
+						   mouseChildren="false" useHandCursor="true">
+					<mx:Image source="@Embed('images/BtnBack.png')"/>
+				</mx:Canvas>
+				
+			</mx:HBox>
+			<mx:Spacer/><mx:Spacer/><mx:Spacer/><mx:Spacer/><mx:Spacer/><mx:Spacer/>
+		</mx:VBox>
+	</mx:HBox>
+</mx:VBox>
+

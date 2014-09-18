@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox verticalGap="0" color="#004B36" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" xmlns:utils="utils.*"
+		 creationComplete="init()" show="init()" xmlns:content="content.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.repository.Projtbl;
+			import co.za.ngwane.epms.repository.Qoupd;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.core.IFlexDisplayObject;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			import spark.events.IndexChangeEvent;
+			
+			[Bindable]
+			public var progObj : Object;
+			
+			public function init():void
+			{
+				
+			}
+			
+			public function getReport(path:String):void
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				remoteObject.destination = "reportRenderer";
+				remoteObject.addEventListener(FaultEvent.FAULT,  getReportFaultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT,  getReportResultHandler);
+				remoteObject.renderReport(path);
+				cursorManager.setBusyCursor();
+			}
+			
+			public function  getReportResultHandler(event:ResultEvent):void
+			{
+				var report:ByteArray = (event.result as ByteArray);
+				
+				sendToServer("Programs.pdf", report);
+				
+				cursorManager.removeBusyCursor();
+			}
+
+			public function  getReportFaultHandler(event:FaultEvent):void 
+			{
+				Alert.show( ObjectUtil.toString(event.fault) );
+
+				Alert.show("There was a problem loading the report, Please try again or if the problem persist contact your Administrator.","Failure", 4, null, null, Helper.noEntryImg);
+			}
+						
+			private function sendToServer(file:String, ba:ByteArray):void{
+				
+				var req:URLRequest = new URLRequest("PDFServlet/"+file);
+				req.method = URLRequestMethod.POST;
+				
+				ba.compress();
+				
+				req.data = ba;
+				
+				Alert.show("byte \n"+ba);
+				navigateToURL(req, "_blank");
+			}
+			
+			
+			public function  getPathResultHandler():void
+			{
+				
+				var urlVariables : URLVariables = new URLVariables ();
+				urlVariables['templateName'] = 'AllProgramsReport';
+				urlVariables['program'] = 'Program 1';
+				urlVariables['project'] = '%';
+				urlVariables['outcome'] = '%';
+				urlVariables['source'] = 'program';
+				
+//				Alert.show("Output getPathResultHandler event.result path: \n"+byteLoader.content);
+				
+				var req:URLRequest = new URLRequest("ReportToBrowser");
+				
+//				Alert.show("Output getPathResultHandler event.result 1: \n"+byteLoader.content);
+				req.method = URLRequestMethod.GET;
+				req.data = urlVariables;
+				
+//				Alert.show("Output getPathResultHandler event.result 2: \n"+byteLoader.content);
+				
+				/* Alert.show("Finally: \n"+event.result);
+//				event.result.compress();
+				Alert.show("here: \n"+event.result);
+				req.data = event.result; */
+				
+//				Alert.show("byte \n"+event.result);
+				navigateToURL(req, "_blank");
+								
+			}
+
+			
+			
+		]]>
+	</fx:Script>
+
+	<mx:VBox verticalGap="0" width="100%" height="100%" paddingLeft="5" paddingBottom="5" paddingRight="5" paddingTop="5">
+		
+		
+		<mx:Spacer/>
+		
+		<mx:Button label="Get Programs Report" click="getPathResultHandler()" />
+	</mx:VBox>
+	
+</mx:VBox>
+

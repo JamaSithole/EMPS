@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow  xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%"
+				creationComplete="init()" title="Add Output"
+				close="cancel()">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		
+	</fx:Declarations>
+	
+	<fx:Style source="style/epms.css"/>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.repository.Outcometbl;
+			import co.za.ngwane.epms.repository.Outputtbl; EPMSSingleton
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.helper.Status;
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.repository.Userepms;
+			
+			import flashx.textLayout.formats.Float;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.controls.Text;
+			import mx.core.FlexGlobals;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			import spark.events.IndexChangeEvent;
+			
+			public function init() : void
+			{
+				PopUpManager.centerPopUp(this);
+				quantity.selectedValue = Status.YES;
+			}
+			
+			public function cancel() : void
+			{
+				PopUpManager.removePopUp(this);
+			}
+			
+			public var errorMSG:String = new String();
+			public function isValid():Boolean
+			{
+				if(quantity.selectedValue.toString() == Status.NO)
+				{
+					
+					if(!Helper.isNumeric(totBudInput.text)){
+						errorMSG += "Total Budget Spend Must be Numeric.\n";				}
+					if(!Helper.isNumeric(q1Input.text)){
+						errorMSG += "Quater 1 Score Must be Numeric.\n";
+					}
+					if(!Helper.isNumeric(q2Input.text)){
+						errorMSG += "Quater 2 Score Must be Numeric.\n";
+					}
+					if(!Helper.isNumeric(q3Input.text)){
+						errorMSG += "Quater 3 Score Must be Numeric.\n";
+					}
+					if(!Helper.isNumeric(q4Input.text)){
+						errorMSG += "Quater 4 Score Must be Numeric.\n";
+					}
+				}
+				else
+				{
+					Alert.show("We need to validations for quantitative.");
+				}
+				
+				//this needs to be worked
+				if(errorMSG.length > 3) 
+				{
+					return false;
+				}
+				else
+				{
+					return true;
+				}
+			}
+			
+			public function doSubmitOutput() : void
+			{
+				if(isValid()) 
+				{
+					var output : co.za.ngwane.epms.repository.Outputtbl = new co.za.ngwane.epms.repository.Outputtbl();
+					var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+					
+					//output.budspend = parseFloat(totBudSpendInput.text);
+					output.totbud = parseFloat(totBudInput.text);
+					
+					output.q1 = parseFloat(q1Input.text);
+					output.q2 = parseFloat(q2Input.text);
+					output.q3 = parseFloat(q3Input.text);
+					output.q4 = parseFloat(q4Input.text); 
+					output.indicator = indicatorInput.text;
+					
+					output.outcometblid = EPMSSingleton.getInstance().selectedOutcome;
+					output.currq = EPMSSingleton.getInstance().Q1;
+					
+					remoteObject.destination = "outputOperations";
+					remoteObject.addOutput(output, selectedOwner);
+					remoteObject.addEventListener(FaultEvent.FAULT, addOutputFaultHandler);
+					remoteObject.addEventListener(ResultEvent.RESULT, addOutputResultHandler);
+					cursorManager.setBusyCursor();
+				}
+				else
+				{
+					Alert.show(errorMSG,"Validation Failure", 4, null, null, Helper.noEntryImg);
+					errorMSG = "";
+				}
+			}
+			
+			public function addOutputResultHandler(event:ResultEvent):void
+			{
+				var result : Boolean = event.result as Boolean;
+				if(result == true)
+				{	
+					Alert.show("Output added successfully.","Successful", 4, null, null,Helper.accept);
+					cancel();
+					clearForm();
+					//FlexGlobals.topLevelApplication.usersContent.userssVS.getAllUsers();
+				}
+				else
+				{
+					Alert.show("Failed to add user.","Error", 4, null, null,Helper.noEntryImg);
+				}
+				cursorManager.removeBusyCursor();
+			}
+			
+			var dotSeparator : String = ".";
+			
+			public function clearForm() : void
+			{
+				//nameInput.text = "";
+			}
+			
+			public static function addOutputFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to add output.","Failure", 4, null, null,Helper.noEntryImg);
+			}
+			
+			public static function faultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Login Failed Please Contact Your Administrator.","Failure", 4, null, null, Helper.noEntryImg);
+			}
+			
+			public var selectedOwner : String = "";
+			public function getSelectedOwner(event:IndexChangeEvent) : void
+			{
+				selectedOwner = ownerInput.selectedItem;
+			}
+			
+			[Bindable]
+			public var widthSize : Number = 160;
+			
+			public function doQualitativeCheck() : void
+			{
+				if(quantity.selectedValue.toString() == Status.YES)
+				{
+					widthSize = 160;
+				}
+				else
+				{
+					widthSize = 300;
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<mx:HBox width="100%" height="100%">
+		<mx:Canvas  width="30%" height="100%"/>
+		
+		<mx:Form width="80%" height="100%">
+			<mx:Spacer/>
+			<s:Label text="Enter Output's Info " fontWeight="bold" textAlign="center"/>
+			<mx:FormItem label="Indicator">
+				<s:TextInput id="indicatorInput" width="220"/>
+			</mx:FormItem>
+			<mx:FormItem label="Quantitative" >
+				<mx:HBox>
+					<s:RadioButtonGroup id="quantity" change="doQualitativeCheck()"/>
+					<s:RadioButton id="quantityYInput" width="45" label="Yes"
+								   groupName="quantity"/>
+					<s:RadioButton id="quantityNInput" width="45" label="No"
+								   groupName="quantity"/>
+				</mx:HBox>
+			</mx:FormItem>
+			<mx:FormItem label="Description">
+				<s:TextInput id="descInput" width="220" height="61"/>
+			</mx:FormItem>
+			<mx:FormItem label="Total Budget:">
+				<s:TextInput id="totBudInput" width="160"  />
+			</mx:FormItem>
+			<mx:FormItem label="Owner:">
+				<s:DropDownList id="ownerInput" width="160" dataProvider="{EPMSSingleton.getInstance().usersNameList}" prompt="Select Owner"
+								change="getSelectedOwner(event)"/>
+			</mx:FormItem>
+			
+			<s:Label text="Enter Quaterly Targets " fontWeight="bold" textAlign="center"/>
+			<mx:FormItem label="Quator 1">
+				<s:TextInput id="q1Input" width="{widthSize}"   />
+			</mx:FormItem>
+			<mx:FormItem label="Quator 2">
+				<s:TextInput id="q2Input" width="{widthSize}"   />
+			</mx:FormItem>
+			<mx:FormItem label="Quator 3">
+				<s:TextInput id="q3Input" width="{widthSize}"   />
+			</mx:FormItem>
+			<mx:FormItem label="Quator 4">
+				<s:TextInput id="q4Input" width="{widthSize}"   />
+			</mx:FormItem>
+			
+			<mx:HBox width="50%" horizontalAlign="center" paddingLeft="70">
+				<mx:Canvas id="submitBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="doSubmitOutput()">
+					<mx:Image source="@Embed('images/BtnSubmit.png')"/>
+				</mx:Canvas>
+				<mx:Canvas id="refreshBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="cancel()">
+					<mx:Image source="@Embed('images/BtnCancel.png')"/>
+				</mx:Canvas>
+			</mx:HBox>
+		</mx:Form>
+		
+		<mx:Canvas  width="10%" height="100%"/>
+	</mx:HBox>
+	
+</s:TitleWindow >

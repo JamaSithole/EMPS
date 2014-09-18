@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="EPMS" default="war" basedir=".">
+
+	<property name="project-name" value="${EPMS}" />
+	<property name="builder" value="TeamCakes" />
+	<property name="webapp.dir" value="C:\glassfish3\glassfish\domains\domain1\autodeploy/" />
+
+	<property name="war-file-name" value="EPMS.war" />
+	<property name="source-directory" value="src" />
+	<property name="classes-directory" value="EPMS/WEB-INF/classes" />
+	<property name="web-directory" value="WEBContent" />
+	<property name="web-xml-file" value="EPMS/WEB-INF/web.xml" />
+	<tstamp prefix="build-info">
+		<format property="current-date" pattern="d-MMMM-yyyy" locale="en" />
+		<format property="current-time" pattern="hh:mm:ss a z" locale="en" />
+	</tstamp>
+	<property name="build-directory" value="C:\glassfish3\glassfish\domains\domain1\autodeploy/" />
+
+	<target name="war" depends="">
+		<mkdir dir="${webapp.dir}" />
+		<delete file="${build-directory}/${war-file-name}" />
+		<war warfile="${build-directory}/${war-file-name}" webxml="${web-xml-file}">
+			<classes dir="${classes-directory}" />
+			<fileset dir="${web-directory}">
+				<!-- Need to exclude it since webxml is an attribute of the war tag above -->
+				<exclude name="WEB-INF/web.xml" />
+			</fileset>
+			<manifest>
+				<attribute name="Built-By" value="${builder}" />
+				<attribute name="Built-On" value="${build-info.current-date}" />
+				<attribute name="Built-At" value="${build-info.current-time}" />
+			</manifest>
+		</war>
+	</target>
+
+</project>

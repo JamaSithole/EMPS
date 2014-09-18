@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow  xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" height="50%"
+			   creationComplete="init()" title="Output Details"
+			   close="cancel()">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Style source="style/epms.css"/>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.repository.Outputtbl;
+			
+			import flashx.textLayout.formats.Float;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.controls.Text;
+			import mx.core.FlexGlobals;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			import spark.events.IndexChangeEvent;
+			
+			[Bindable]
+			public var idTypeObj : Object;
+			
+			public function init() : void
+			{
+				PopUpManager.centerPopUp(this);
+				
+			}
+			
+			public function cancel() : void
+			{
+				PopUpManager.removePopUp(this);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<mx:HBox width="100%" height="100%">
+		<mx:Canvas  width="20%" height="100%"/>
+		
+		<mx:VBox width="100%" >
+			<mx:Spacer/><mx:Spacer/>
+			<s:Label text=" Patient's Information" fontWeight="bold" textAlign="center"/>
+			<mx:HBox width="100%" >
+				<mx:Form width="80%" >
+					<mx:Spacer/>
+					
+					<mx:FormItem label="Ref Number:" >
+						<s:TextInput id="nameInput" width="220" text="{}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Department:" >
+						<s:TextInput id="middlenameInput" width="220" text="{}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Project:">
+						<s:TextInput id="surnameInput" width="220" text="{}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Total Budget:">
+						<s:TextInput id="totBudgetInput" width="220" text="{}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Owner:">
+						<s:TextInput id="ownerInput" width="220" text="{}"/>
+					</mx:FormItem>
+					
+				</mx:Form>
+				
+				<mx:Form width="80%" height="100%" >
+					<mx:Spacer/>
+					<mx:FormItem label="Section:">
+						<s:TextInput id="idNumberInput" width="220" text="{}" />
+					</mx:FormItem>
+					<mx:FormItem label="Cluster:">
+						<s:TextInput id="contactNumberInput" width="220" text="{}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Program:">
+						<s:TextInput id="progInput" width="220" text="{}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Budget Spend:">
+						<s:TextInput id="budgetSpendInput" width="220" text="{}"/>
+					</mx:FormItem>
+				</mx:Form>
+			</mx:HBox>
+			
+			<mx:HBox width="100%" >
+				<mx:Form width="80%" height="100%" >
+					<mx:Spacer/>
+					<s:Label text=" Quater 1" fontWeight="bold" textAlign="center"/>
+					<mx:Spacer/>
+					
+					<mx:FormItem label="Target:" >
+						<s:TextInput id="target1Input" width="90"/>
+					</mx:FormItem>
+					<mx:FormItem label="Actual:">
+						<s:TextInput id="actual1Input" width="90" />
+					</mx:FormItem>
+					
+				</mx:Form>
+				
+				<mx:Form width="80%" height="100%" >
+					<mx:Spacer/>
+					
+					<s:Label text=" Quater 1" fontWeight="bold" textAlign="center" visible="false"/>
+					<mx:FormItem label="Prescription:">
+						<s:TextInput id="prescriptionInput" width="220" />
+					</mx:FormItem>
+				</mx:Form>
+			</mx:HBox>
+			
+			<mx:HBox width="100%" >
+				<mx:Form width="80%" height="100%" >
+					<mx:Spacer/>
+					<s:Label text=" Quater 2" fontWeight="bold" textAlign="center"/>
+					<mx:Spacer/>
+					
+					<mx:FormItem label="Target:" >
+						<s:TextInput id="target2Input" width="90"/>
+					</mx:FormItem>
+					<mx:FormItem label="Actual:">
+						<s:TextInput id="actual2Input" width="90" />
+					</mx:FormItem>
+					
+				</mx:Form>
+				
+				<mx:Form width="80%" height="100%" >
+					<mx:Spacer/>
+					
+					<s:Label text=" Quater 1" fontWeight="bold" textAlign="center" visible="false"/>
+					<mx:FormItem label="Prescription:">
+						<s:TextInput id="prescription2Input" width="220" />
+					</mx:FormItem>
+				</mx:Form>
+			</mx:HBox>
+			
+			
+			
+			
+			
+			<mx:HBox width="100%" >
+				<mx:Form width="80%" height="100%" >
+					<mx:Spacer/>
+					
+					<mx:FormItem label="Ref Number:" >
+						<s:TextInput id="nameInput1" width="220" text="{}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Department:" >
+						<s:TextInput id="middlenameInput1" width="220" text="{}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Project:">
+						<s:TextInput id="surnameInput1" width="220" text="{}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Total Budget:">
+						<s:TextInput id="totBudgetInput1" width="220" text="{}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Owner:">
+						<s:TextInput id="ownerInput1" width="220" text="{}"/>
+					</mx:FormItem>
+					
+				</mx:Form>
+				
+				<mx:Form width="80%" height="100%" >
+					<mx:Spacer/>
+					<mx:FormItem label="Section:">
+						<s:TextInput id="idNumberInput1" width="220" text="{}" />
+					</mx:FormItem>
+					<mx:FormItem label="Cluster:">
+						<s:TextInput id="contactNumberInput1" width="220" text="{}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Program:">
+						<s:TextInput id="progInput1" width="220" text="{}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Budget Spend:">
+						<s:TextInput id="budgetSpendInput1" width="220" text="{}"/>
+					</mx:FormItem>
+				</mx:Form>
+			</mx:HBox>
+			
+		<mx:HBox width="100%" horizontalAlign="center">
+			<mx:Canvas id="submitBT" useHandCursor="true" buttonMode="true" mouseChildren="false">
+				<mx:Image source="@Embed('images/BtnSubmit.png')"/>
+			</mx:Canvas>
+			<mx:Canvas id="refreshBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="cancel()">
+				<mx:Image source="@Embed('images/BtnCancel.png')"/>
+			</mx:Canvas>
+		</mx:HBox>
+			<mx:Spacer/><mx:Spacer/><mx:Spacer/><mx:Spacer/><mx:Spacer/><mx:Spacer/>
+		</mx:VBox>
+		
+		<mx:Canvas  width="10%" height="100%"/>
+	</mx:HBox>
+	
+</s:TitleWindow >

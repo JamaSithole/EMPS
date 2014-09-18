@@ -1,0 +1,147 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<service id="remoting-service" class="flex.messaging.services.RemotingService">
+
+	<adapters>
+		<adapter-definition id="java-object"
+			class="flex.messaging.services.remoting.adapters.JavaAdapter"
+			default="true" />
+	</adapters>
+
+	<default-channels>
+		<channel ref="my-amf" />
+	</default-channels>
+
+	<destination id="clusterOperations">
+		<properties>
+			<source>co.za.ngwane.epms.operation.ClusterOperations</source>
+			<scope>application</scope>
+		</properties>
+	</destination>
+
+	<destination id="directorateOperations">
+		<properties>
+			<source>co.za.ngwane.epms.operation.DirectorateOperations</source>
+			<scope>application</scope>
+		</properties>
+	</destination>
+
+	<destination id="departmentOperations">
+		<properties>
+			<source>co.za.ngwane.epms.operation.DeptOperations</source>
+			<scope>application</scope>
+		</properties>
+	</destination>
+
+	<destination id="sectionOperations">
+		<properties>
+			<source>co.za.ngwane.epms.operation.SectionOperations</source>
+			<scope>application</scope>
+		</properties>
+	</destination>
+
+	<destination id="programOperations">
+		<properties>
+			<source>co.za.ngwane.epms.operation.ProgramOperations</source>
+			<scope>application</scope>
+		</properties>
+	</destination>
+
+	<destination id="projectOperations">
+		<properties>
+			<source>co.za.ngwane.epms.operation.ProjectOperations</source>
+			<scope>application</scope>
+		</properties>
+	</destination>
+
+	<destination id="outcomeOperations">
+		<properties>
+			<source>co.za.ngwane.epms.operation.OutcomeOperations</source>
+			<scope>application</scope>
+		</properties>
+	</destination>
+
+	<destination id="userOperations">
+		<properties>
+			<source>co.za.ngwane.epms.operation.UserOperations</source>
+			<scope>application</scope>
+		</properties>
+	</destination>
+	
+	<destination id="ndpOperations">
+		<properties>
+			<source>co.za.ngwane.epms.operation.NdpOperations</source>
+			<scope>application</scope>
+		</properties>
+	</destination>
+	
+	<destination id="ndpItemsOperations">
+		<properties>
+			<source>co.za.ngwane.epms.operation.NdpItemsOperations</source>
+			<scope>application</scope>
+		</properties>
+	</destination>
+	
+	<destination id="outputOperations">
+		<properties>
+			<source>co.za.ngwane.epms.operation.OutputOperations</source>
+			<scope>application</scope>
+		</properties>
+	</destination>
+
+	<destination id="progNdpLinkOperations">
+		<properties>
+			<source>co.za.ngwane.epms.operation.ProgNdpLinkOperations</source>
+			<scope>application</scope>
+		</properties>
+	</destination>
+	
+	<destination id="projNdpLinkItemsOperations">
+		<properties>
+			<source>co.za.ngwane.epms.operation.ProjNdpLinkItemsOperations</source>
+			<scope>application</scope>
+		</properties>
+	</destination>
+	
+	<destination id="outputUpdateOperations">
+		<properties>
+			<source>co.za.ngwane.epms.operation.OutputUpdateOperations</source>
+			<scope>application</scope>
+		</properties>
+	</destination>
+	
+	<destination id="planOperations">
+		<properties>
+			<source>co.za.ngwane.epms.operation.PlanOperations</source>
+			<scope>application</scope>
+		</properties>
+	</destination>
+	
+	<destination id="fileUploadOperation">
+		<properties>
+			<source>co.za.ngwane.epms.operation.FileUploadOperation</source>
+			<scope>application</scope>
+		</properties>
+	</destination>
+	
+	<destination id="attachepmsOperations">
+		<properties>
+			<source>co.za.ngwane.epms.operation.AttachepmsOperations</source>
+			<scope>application</scope>
+		</properties>
+	</destination>
+	
+	<destination id="userModOperations">
+		<properties>
+			<source>co.za.ngwane.epms.operation.UserModOperations</source>
+			<scope>application</scope>
+		</properties>
+	</destination>
+	
+	<destination id="sysModOperations">
+		<properties>
+			<source>co.za.ngwane.epms.operation.SysModOperations</source>
+			<scope>application</scope>
+		</properties>
+	</destination>
+	
+</service>

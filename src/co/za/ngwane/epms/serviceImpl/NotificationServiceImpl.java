@@ -1,0 +1,45 @@
+package co.za.ngwane.epms.serviceImpl;
+
+import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
+import co.za.ngwane.epms.dao.NotifyDAO;
+import co.za.ngwane.epms.repository.Outputtbl;
+import co.za.ngwane.epms.repository.Usermessages;
+import co.za.ngwane.epms.service.NotificationService;
+
+public class NotificationServiceImpl implements NotificationService
+{
+
+	private static Logger logger = Logger.getLogger(NotificationServiceImpl.class);
+	
+	@Override
+	public List<Usermessages> getMessagesToProcess(Date currentDate) throws Exception
+	{
+		List<Usermessages> messagesList = new ArrayList<Usermessages>();
+		logger.info("We are testing loggers ");
+		messagesList = new NotifyDAO().getAll(currentDate);
+		
+		return messagesList;
+	}
+
+	@Override
+	public boolean update(Usermessages usermessages) throws Exception
+	{
+		return new NotifyDAO().update(usermessages);
+	}
+
+	@Override
+	public boolean add(Usermessages usermessages) throws Exception
+	{
+		return new NotifyDAO().addusermessage(usermessages);
+	}
+	
+	public List<Usermessages> getByOutput(Outputtbl outputtbl) throws Exception{
+		return new NotifyDAO().getByOutput(outputtbl);
+	}
+
+}

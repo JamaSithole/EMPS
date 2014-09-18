@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox verticalGap="0" color="#004B36" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" xmlns:utils="utils.*"
+		 creationComplete="init()" show="init()" xmlns:content="content.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.repository.Projtbl;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.core.IFlexDisplayObject;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			import spark.events.IndexChangeEvent;
+			
+			[Bindable]
+			public var progObj : Object;
+			
+			public function init():void
+			{
+				//getAllProjs(); // this will be deleted or removed, and uncomment getProjByProg below
+				
+				if(EPMSSingleton.getInstance().selectedProg != null)
+				{
+					getProjByProg(EPMSSingleton.getInstance().selectedProg.name);
+					
+					for each(var progItem:Object in EPMSSingleton.getInstance().progNameList)
+					{
+						if(EPMSSingleton.getInstance().selectedProg.name == progItem)
+						{
+							progInput.selectedItem = progObj = progItem;
+							break;
+						}
+					}
+				}
+				
+				//FlexGlobals.topLevelApplication.login.getAllProjs();
+			}
+			
+			public function setWidth() : void 
+			{
+				
+			}
+			
+			public function search():void
+			{
+				if(searchInput.text != "")
+				{
+					var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+					var searchKey = searchInput.text;
+					remoteObject.destination = "projectOperations";
+					remoteObject.addEventListener(FaultEvent.FAULT, searchFaultHandler);
+					remoteObject.addEventListener(ResultEvent.RESULT, searchResultHandler);
+					remoteObject.searchProj(searchKey);
+					cursorManager.setBusyCursor();
+				}
+				else
+				{
+					searchInput.text = "< Enter your search here >";
+					//getAllProjs();
+				}
+			}
+			
+			public static function searchFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to search for please contact your administrator if this continues.","Failure", 4, null, null,Helper.noEntryImg);
+			}
+			
+			
+			public function searchResultHandler(event:ResultEvent):void
+			{
+				projectList = (event.result as ArrayCollection);
+				//Alert.show("Result Search is: "+clientsList.length);
+				if(projectList.length != 0)
+				{
+					projectListDG.dataProvider = projectList;
+				} 
+				else
+				{
+					Alert.show("Project info not found.","Error", 4, null, null, Helper.noEntryImg);
+				}
+				cursorManager.removeBusyCursor();
+			}
+			
+			public function clearInnerText():void
+			{
+				if(searchInput.text == "< Enter your search here >")
+				{
+					searchInput.text = "";
+				}
+			}
+			
+			public function getAllProjs():void
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				remoteObject.destination = "projectOperations";
+				remoteObject.addEventListener(FaultEvent.FAULT, getAllProjFaultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT, getAllProjResultHandler);
+				remoteObject.getAll();
+				cursorManager.setBusyCursor();
+			}
+			
+			public static function getAllProjFaultHandler(event:FaultEvent) : void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to load projects please contact your administrator if this continues.","Failure", 4, null, null, Helper.noEntryImg);
+			}
+			
+			public function getAllProjResultHandler(event:ResultEvent):void
+			{
+				EPMSSingleton.getInstance().projectListFormatted = new ArrayCollection();
+				//EPMSSingleton.getInstance().projectNameList = new ArrayCollection();
+				
+				//Alert.show("event.result: \n"+event.result);
+				projectList = (event.result as ArrayCollection);
+				EPMSSingleton.getInstance().projectList = projectList;
+				
+				for each (var proj : co.za.ngwane.epms.repository.Projtbl in EPMSSingleton.getInstance().projectList )
+				{
+					EPMSSingleton.getInstance().projectNameList.addItem(proj.name);
+					if(proj.score > 0)
+					{
+						proj.scoreClient = proj.score.toFixed(2) + "%"; 
+					}
+					else
+					{
+						proj.scoreClient = proj.score + "%"; 
+					}
+					
+					if(proj.budspend > 0)
+					{
+						proj.budspendClient = Helper.ZAR + proj.budspend.toFixed(2) ; 
+					}
+					else
+					{
+						proj.budspendClient = Helper.ZAR + proj.budspend; 
+					}
+					
+					if(proj.totbud > 0)
+					{
+						proj.totbudClient = Helper.ZAR + proj.totbud.toFixed(2) ; 
+					}
+					else
+					{
+						proj.totbudClient = Helper.ZAR + proj.totbud; 
+					}
+					
+					EPMSSingleton.getInstance().projectListFormatted.addItem(proj);
+					
+				}
+				cursorManager.removeBusyCursor();
+			}
+			
+			public var loadPopUp:IFlexDisplayObject; 
+			//public var myPopUp:AddProj; 
+			
+			public var addProjectPopup : AddProjectPopup; 
+			
+			public function addProject() : void
+			{
+				if(EPMSSingleton.getInstance().projAdd)
+				{
+					Helper.editNameWindow=PopUpManager.createPopUp(FlexGlobals.topLevelApplication.successfullyLogin, AddProjectPopup, true); 
+					// cast to a nameEditorPopup
+					addProjectPopup = AddProjectPopup(Helper.editNameWindow); 
+				}
+				
+				else
+				{
+					Alert.show("You have no permission to add project","Permission Error", 4, null, null,Helper.noEntryImg);
+				}
+			}
+			
+			public function refresh() : void 
+			{
+				//getAllProjs();
+				searchInput.text = "< Enter your search here >";
+			}
+			
+			public var selectedProg : String = "";
+			public function getSelectedProg(event:IndexChangeEvent):void
+			{
+				selectedProg = progInput.selectedItem;
+				getProjByProg(selectedProg);
+			}
+			
+			public function getProjByProg (progName : String) : void
+			{
+			
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				remoteObject.destination = "projectOperations";
+				remoteObject.addEventListener(FaultEvent.FAULT, getProjByProgFaultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT, getProjByProgResultHandler);
+				remoteObject.getProjByProg(progName);
+				cursorManager.setBusyCursor();
+			}
+			
+			public static function getProjByProgFaultHandler(event:FaultEvent) : void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to load projects please contact your administrator if this continues.","Failure", 4, null, null, Helper.noEntryImg);
+			}
+			
+			public var projectList:ArrayCollection = EPMSSingleton.getInstance().projectList;
+			public var finalScore : String;
+			
+			public function getProjByProgResultHandler(event:ResultEvent):void
+			{
+				EPMSSingleton.getInstance().projectListFormatted = new ArrayCollection();
+				EPMSSingleton.getInstance().projectNameList = new ArrayCollection();
+				//Alert.show("event.result: \n"+event.result);
+				projectList = (event.result as ArrayCollection);
+				EPMSSingleton.getInstance().projectList = projectList;
+				
+				for each (var proj : co.za.ngwane.epms.repository.Projtbl in EPMSSingleton.getInstance().projectList )
+				{
+					EPMSSingleton.getInstance().projectNameList.addItem(proj.name);
+					if(proj.score > 0)
+					{
+						proj.scoreClient = proj.score.toFixed(2) + "%"; 
+					}
+					else
+					{
+						proj.scoreClient = proj.score + "%"; 
+					}
+					
+					if(proj.budspend > 0)
+					{
+						proj.budspendClient = Helper.ZAR + proj.budspend.toFixed(2) ; 
+					}
+					else
+					{
+						proj.budspendClient = Helper.ZAR + proj.budspend; 
+					}
+					
+					if(proj.totbud > 0)
+					{
+						proj.totbudClient = Helper.ZAR + proj.totbud.toFixed(2) ; 
+					}
+					else
+					{
+						proj.totbudClient = Helper.ZAR + proj.totbud; 
+					}
+					
+					EPMSSingleton.getInstance().projectListFormatted.addItem(proj);
+					
+				}
+				cursorManager.removeBusyCursor();
+			}
+			
+			public function getSelectedProject() : void 
+			{
+				EPMSSingleton.getInstance().selectedProj = projectListDG.selectedItem as Projtbl;
+				//(this.parent as ViewStack).selectedIndex = 2;
+				(this.parent as ViewStack).selectedChild = FlexGlobals.topLevelApplication.poeContentVS.outcomeVS;
+			}
+			
+			
+		]]>
+	</fx:Script>
+	<mx:VBox verticalGap="0" width="100%" height="100%" paddingLeft="5" paddingBottom="5" paddingRight="5" paddingTop="5">
+		
+		<mx:Canvas x="80" y="49" width="100%" height="45" borderVisible="false">
+			<s:HGroup width="100%">
+				<s:DropDownList id="progInput" width="220" dataProvider="{EPMSSingleton.getInstance().progNameList}" prompt="Select Program"
+								change="getSelectedProg(event)"/>
+				<mx:Spacer/><mx:Spacer/>
+				<s:VGroup>
+					<s:TextInput id="searchInput" x="68" y="7" width="186" change="search()" click="clearInnerText()"
+								 prompt="search projects"/>
+				</s:VGroup>
+				<mx:Canvas width="80%" borderVisible="false"/>
+				<!--<mx:Canvas id="refreshBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="refresh()">
+					<mx:Image source="@Embed('images/BtnRefresh.png')"/>
+				</mx:Canvas>-->
+			</s:HGroup>
+		</mx:Canvas>
+		
+		<mx:Spacer/>
+		
+		<s:HGroup width="100%" paddingBottom="5">
+			<s:Label height="25" fontWeight="bold" paddingBottom="5" paddingLeft="0" paddingRight="5"
+					 paddingTop="5" text="Search returned {EPMSSingleton.getInstance().projectList.length} result(s)"/>
+			<mx:Canvas width="80%" borderVisible="false"/>
+			<mx:Canvas id="addProjBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="addProject()">
+				<mx:Image source="@Embed('images/BtnCreate.png')"/>
+			</mx:Canvas>
+		</s:HGroup>
+		
+		<mx:DataGrid id="projectListDG" height="100%" width="100%" dataProvider="{EPMSSingleton.getInstance().projectListFormatted}"
+					 itemDoubleClick="getSelectedProject()" doubleClickEnabled="true">
+			<mx:columns>
+				<mx:DataGridColumn headerText="ID" dataField="id" visible="false" width="40"/>
+				<mx:DataGridColumn headerText="NAME" dataField="name" id="nameDC"/>
+				<!--<mx:DataGridColumn headerText="PROGRAM" dataField="progtblid.name" id="programDC"/>-->
+				<mx:DataGridColumn headerText="TOTAL BUDGET" dataField="totbudClient" id="totBudDC"/>
+				<mx:DataGridColumn headerText="TOTAL BUDGET SPEND" dataField="budspendClient" id="totBudSpendDC"/>
+				<mx:DataGridColumn headerText="START DATE" dataField="startd" id="startdDC" labelFunction="{Helper.dateFormatLabelFunctionDGColumn}"/>
+				<mx:DataGridColumn headerText="END DATE" dataField="endd" id="roleDC" labelFunction="{Helper.dateFormatLabelFunctionDGColumn}"/>
+				<mx:DataGridColumn headerText="SCORE" dataField="scoreClient" id="scoreDC"/>
+				<mx:DataGridColumn itemRenderer="content.ProjectItemRender" visible="true" headerText=""/>
+			</mx:columns>
+
+		</mx:DataGrid>
+	</mx:VBox>
+	
+</mx:VBox>
+

@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow  xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%"
+				creationComplete="init()" title="Add Project"
+				close="cancel()">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		
+	</fx:Declarations>
+	
+	<fx:Style source="style/epms.css"/>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.repository.Ndpltems;
+			import co.za.ngwane.epms.repository.Progtbl;
+			import co.za.ngwane.epms.repository.Projtbl; EPMSSingleton
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.helper.Status;
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.repository.Userepms;
+			
+			import flashx.textLayout.formats.Float;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.controls.Text;
+			import mx.core.FlexGlobals;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			import spark.events.IndexChangeEvent;
+			
+			public function init() : void
+			{
+				PopUpManager.centerPopUp(this);
+			}
+			
+			public function cancel() : void
+			{
+				PopUpManager.removePopUp(this);
+				EPMSSingleton.getInstance().prog = new Progtbl;
+			}
+			
+			public function seacrh():void
+			{
+				
+			}
+			
+			public var errorMSG:String = new String();
+			public function isValid():Boolean
+			{
+				
+				if(nameInput.text == "")
+				{
+					errorMSG += "Please Enter Name.\n";
+				}
+				if(descInput.text == "")
+				{
+					errorMSG += "Please Select Description.\n";
+				}
+				if(selectedProg.name == "")
+				{
+					errorMSG += "Please Select Program.\n";
+				}
+				/*if(selectedNdp == "")
+				{
+					errorMSG += "Please Select NDP.\n";
+				}*/
+				if(startDInput.text == "")
+				{
+					errorMSG += "Please Enter Start Date.\n";
+				}
+				if(endDInput.text == "")
+				{
+					errorMSG += "Please Enter End Date.\n";
+				}
+				if(totBudInput.text == "" || !Helper.isNumeric(totBudInput.text))
+				{
+					errorMSG += "Please Enter Numeric Total Budget.\n";
+				}
+				if(errorMSG.length > 3) 
+				{
+					return false;
+				}
+				else
+				{
+					return true;
+				}
+			}
+			
+			public var selectedProg : Progtbl = new Progtbl;
+			public function getSelectedProg(event:IndexChangeEvent):void
+			{
+				selectedProg = progInput.selectedItem;
+				EPMSSingleton.getInstance().prog = selectedProg;
+				//getProgByName(); 
+			}
+			
+			public function getProgByName():void
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				remoteObject.destination = "programOperations";
+				remoteObject.addEventListener(FaultEvent.FAULT, getProgByNameFaultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT, getProgByNameResultHandler);
+				remoteObject.getByName(selectedProg.name);
+				cursorManager.setBusyCursor();
+			}
+			
+			public static function getProgByNameFaultHandler(event:FaultEvent) : void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to program ndp list items please contact your administrator if this continues.","Failure", 4, null, null,Helper.noEntryImg);
+			}
+			
+			public var prog : Progtbl = new Progtbl();
+			
+			public function getProgByNameResultHandler(event:ResultEvent):void
+			{
+				//Alert.show("getAllClusterResultHandler event.result: \n"+event.result);
+				prog = (event.result as Progtbl);
+				EPMSSingleton.getInstance().prog = prog;
+				
+				cursorManager.removeBusyCursor();
+				
+			}
+			
+			public var selectedCluster : String = "";
+			public function getSelectedCluster(event:IndexChangeEvent):void
+			{
+				//selectedCluster = clusterInput.selectedItem;
+			}
+			
+			
+			public var ndpItemList : ArrayCollection = EPMSSingleton.getInstance().ndpItemList;
+			
+			public function doSubmitProj():void
+			{
+				if(isValid()) 
+				{
+					var proj : co.za.ngwane.epms.repository.Projtbl = new co.za.ngwane.epms.repository.Projtbl();
+					var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+					
+					proj.name = nameInput.text;
+					//proj.budspend = totBudSpendInput.value;
+					proj.endd = endDInput.selectedDate;
+					proj.startd = startDInput.selectedDate;
+					//proj.totbud = totBud;
+					proj.allocatedBudget = totBudInput.text;
+					proj.totbud = parseFloat(totBudInput.text);
+					proj.progtblid = selectedProg;
+					proj.owner = selectedOwner;
+					
+					remoteObject.destination = "projectOperations";
+					remoteObject.addProject(proj);
+					remoteObject.addEventListener(FaultEvent.FAULT, addProjFaultHandler);
+					remoteObject.addEventListener(ResultEvent.RESULT, addProjResultHandler);
+					cursorManager.setBusyCursor();
+					
+				}
+				else
+				{
+					Alert.show(errorMSG,"Validation Failure", 4, null, null, Helper.noEntryImg);
+					errorMSG = "";
+				}
+			}
+			
+			public function addProjResultHandler(event:ResultEvent):void
+			{
+				var result : Projtbl = event.result as Projtbl;
+				
+				if(result.id > 0)
+				{	
+					Alert.show("Project added successfully.","Successful", 4, null, null, Helper.accept);
+					cancel();
+					clearForm();
+					
+					FlexGlobals.topLevelApplication.sectionContent.projectVS.getProjByProg(selectedProg);
+				}
+				else
+				{
+					Alert.show(result.errorMessage,"Error", 4, null, null, Helper.noEntryImg);
+				}
+				cursorManager.removeBusyCursor();
+			}
+			
+			
+			var dotSeparator : String = ".";
+			
+			public function clearForm() : void
+			{
+				nameInput.text = "";
+				descInput.text = "";
+				endDInput.text = "";
+				startDInput.text = "";
+				// one way or the other one needs to reload lookups here
+			}
+			
+			public static function addProjFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to add project.","Failure", 4, null, null, Helper.noEntryImg);
+			}
+			public var selectedOwner : Userepms = new Userepms;
+			public function getSelectedOwner(event:IndexChangeEvent) : void
+			{
+				selectedOwner = ownerInput.selectedItem;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<mx:HBox width="100%" height="100%">
+		<mx:Canvas  width="30%" height="100%"/>
+		
+		<mx:Form width="60%" height="100%">
+			<mx:Spacer/>
+			<s:Label text="Enter Directorate's Info " fontWeight="bold" textAlign="center"/>
+			<mx:FormItem label="Name:" >
+				<s:TextInput id="nameInput" width="220"/>
+			</mx:FormItem>
+			<mx:FormItem label="Description">
+				<s:TextArea id="descInput" width="220" height="61"/>
+			</mx:FormItem>
+			<mx:FormItem label="Owner:">
+				<s:DropDownList id="ownerInput" width="160" dataProvider="{EPMSSingleton.getInstance().usersList}" prompt="Select Owner"
+								change="getSelectedOwner(event)"
+								labelField="name"/>
+			</mx:FormItem>
+			<mx:FormItem label="Program">
+				<s:DropDownList id="progInput" width="220" labelField="name" dataProvider="{EPMSSingleton.getInstance().progList}" prompt="Select Program"
+								change="getSelectedProg(event)"/>
+			</mx:FormItem>
+			
+			<mx:FormItem label="Start Date:">
+				<mx:DateField id="startDInput" width="160" formatString="{Helper.dateFormat}" />
+			</mx:FormItem>
+			<mx:FormItem label="End Date:">
+				<mx:DateField id="endDInput" width="160" formatString="{Helper.dateFormat}" />
+			</mx:FormItem>
+			<mx:FormItem label="Budget Allocated:">
+				<s:TextInput id="totBudInput" width="160"/>
+			</mx:FormItem>
+			<mx:FormItem label="Budget Available:">
+				<s:TextInput id="totBudSpendInput" width="160" text="R {EPMSSingleton.getInstance().prog.avbalance}" enabled="false"/>
+			</mx:FormItem>
+			
+			<mx:HBox width="50%" horizontalAlign="center" paddingLeft="70">
+				<mx:Canvas id="submitBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="doSubmitProj()">
+					<mx:Image source="@Embed('images/BtnSubmit.png')"/>
+				</mx:Canvas>
+				<mx:Canvas id="refreshBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="cancel()">
+					<mx:Image source="@Embed('images/BtnCancel.png')"/>
+				</mx:Canvas>
+			</mx:HBox>
+		</mx:Form>
+		
+		<mx:Canvas  width="10%" height="100%"/>
+	</mx:HBox>
+	
+</s:TitleWindow >

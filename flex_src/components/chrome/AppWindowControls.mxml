@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:HBox xmlns:mx="http://www.adobe.com/2006/mxml"
+	horizontalGap="0" horizontalAlign="right"
+	paddingRight="8"
+	horizontalScrollPolicy="off" verticalScrollPolicy="off"  backgroundAlpha="0.0">
+	<mx:Script>
+		<![CDATA[
+			import mx.managers.CursorManager;
+			
+			import za.co.interfile.mfc.managers.DataManager;
+			
+			private function miniOver():void
+			{
+				min.source = "images/button_on_min.png";
+			}
+			
+			private function miniOut():void
+			{
+				min.source = "images/button_min.png";
+			}
+			
+			private function closeOver():void
+			{
+				close.source = "images/button_on_closeg.png";
+			}
+			
+			private function closeOut():void
+			{
+				close.source = "images/button_closeg.png";
+			}
+			
+			private function maxOver():void
+			{
+				var miniMax:int = DataManager.getInstance().miniMax;
+				if (miniMax == 0)
+					max.source = "images/button_on_max2.png";
+				else
+					max.source = "images/button_on_max.png";
+			}
+			
+			private function maxOut():void
+			{
+				var miniMax:int = DataManager.getInstance().miniMax;
+				if (miniMax == 0)
+					max.source = "images/button_on_max2g.png";
+				else
+					max.source = "images/button_on_maxg.png";
+			}
+			
+			private function maxClick():void
+			{
+				var miniMax:int = DataManager.getInstance().miniMax;
+				if (miniMax == 0)
+				{
+					stage.nativeWindow.maximize();
+					DataManager.getInstance().miniMax = 1;
+				}
+				else
+				{
+					DataManager.getInstance().miniMax = 0;
+					stage.nativeWindow.height = 710;
+					stage.nativeWindow.width = 890;
+				}
+			}
+			
+		]]>
+	</mx:Script>
+	<mx:Image id="min" width="20" height="20" source="images/button_on_ming.png" click="stage.nativeWindow.minimize()" toolTip="Minimize"/>
+	<mx:Label width="3" alpha="0.0"/>
+	<mx:Image id="max" width="20" height="20" source="images/button_on_max2g.png" alpha="1.0" click="maxClick()" mouseOut="maxOut()" toolTip="Maximize"/>
+	<mx:Label width="3" alpha="0.0"/>
+	<mx:Image id="close" width="20" height="20"  source="images/button_on_closeg.png" alpha="1.0" click="NativeApplication.nativeApplication.exit()" toolTip="Close"/>
+	
+</mx:HBox>

@@ -1,0 +1,257 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox verticalGap="0" color="#004B36" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" xmlns:utils="utils.*"
+		 creationComplete="init()" show="usersShow()" xmlns:content="content.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.repository.Sysmod;
+			import co.za.ngwane.epms.repository.Userepms;
+			import co.za.ngwane.epms.repository.Usermod;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.core.IFlexDisplayObject;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			import spark.events.IndexChangeEvent;
+			
+			public function init():void
+			{
+				
+			}
+			
+			[bindable]
+			public function usersShow():void
+			{
+				if(EPMSSingleton.getInstance().selectedUser.name != null)
+				{
+					getAllUsermods();
+				}
+				
+			}
+			
+			public function search():void
+			{
+				if(searchInput.text != "")
+				{
+					var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+					var searchKey = searchInput.text;
+					remoteObject.destination = "userOperations";
+					remoteObject.addEventListener(FaultEvent.FAULT, faultHandler);
+					remoteObject.addEventListener(ResultEvent.RESULT, searchResultHandler);
+					remoteObject.searchUser(searchKey);
+					cursorManager.setBusyCursor();
+				}
+				else
+				{
+					searchInput.text = "< Enter your search here >";
+					//getAllUsermods();
+				}
+			}
+			
+			public function searchResultHandler(event:ResultEvent):void
+			{
+				userModsList = (event.result as ArrayCollection);
+				//Alert.show("Result Search is: "+clientsList.length);
+				if(userModsList.length != 0)
+				{
+					userListDG.dataProvider = userModsList;
+				} 
+				else
+				{
+					Alert.show("User info not found.","Error", 4, null, null, Helper.noEntryImg);
+				}
+				cursorManager.removeBusyCursor();
+			}
+			
+			public static function faultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Oops Something Went Wrong Please Contact Your Administrator If This Continues.","Failure", 4, null, null,Helper.noEntryImg);
+			}
+			
+			public function clearInnerText():void
+			{
+				if(searchInput.text == "< Enter your search here >")
+				{
+					searchInput.text = "";
+				}
+				
+			}
+			
+			public function getAllUsermods():void
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				remoteObject.destination = "userModOperations";
+				remoteObject.addEventListener(FaultEvent.FAULT, faultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT, getAllUsermodsResultHandler);
+				remoteObject.getByUser(EPMSSingleton.getInstance().selectedUser);
+				cursorManager.setBusyCursor();
+			}
+			
+			public var userModsList:ArrayCollection = EPMSSingleton.getInstance().userModsList;
+			
+			public function getAllUsermodsResultHandler(event:ResultEvent):void
+			{
+				//Alert.show("event.result: \n"+event.result);
+				userModsList = (event.result as ArrayCollection);
+				EPMSSingleton.getInstance().userModsList = userModsList;
+				userListDG.dataProvider = userModsList;
+				cursorManager.removeBusyCursor();
+			}
+			
+			public var loadPopUp:IFlexDisplayObject; 
+			//public var myPopUp:AddUser; 
+			
+			public var addUserModPopup : AddUserModPopup; 
+			
+			public function addUserMod() : void
+			{
+				if(EPMSSingleton.getInstance().userAdd)
+				{
+					//getSysMod();
+					loadAddUserModPopup();
+				}
+				else
+				{
+					Alert.show("You have no permission to add user","Permission Error", 4, null, null,Helper.noEntryImg);
+				}
+			}
+			
+			//------------------------------------------------------------------------------------
+			public function getSysMod() : void
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				remoteObject.destination = "sysModOperations";
+				remoteObject.addEventListener(FaultEvent.FAULT, faultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT, getSysModResultHandler);
+				
+				remoteObject.getSysMod( EPMSSingleton.getInstance().selectedUser );
+				
+				cursorManager.setBusyCursor();
+			}
+			
+			public var sysModsClientList : ArrayCollection = EPMSSingleton.getInstance().sysModsClientList;
+			
+			public function getSysModResultHandler(event : ResultEvent) : void
+			{
+				//Alert.show("event.result: \n"+event.result);
+				sysModsClientList = ( event.result as ArrayCollection );
+				EPMSSingleton.getInstance().sysModsClientList = sysModsClientList;
+				cursorManager.removeBusyCursor();
+			}
+			//--------------------------------------EnD----------------------------------------------
+			
+			private function prepareLists() : void
+			{
+				EPMSSingleton.getInstance().sysModsClientList  = new ArrayCollection;
+				
+				for each (var sysmod : Sysmod in EPMSSingleton.getInstance().sysModsList)
+				{
+					for each (var usermod : Usermod in EPMSSingleton.getInstance().userModsList)
+					{
+						if( usermod.module.id == sysmod.id )
+						{
+							EPMSSingleton.getInstance().sysModsList.removeItemAt( 
+								EPMSSingleton.getInstance().sysModsList.getItemIndex(sysmod));
+							break;
+						}
+					}
+				}
+				
+				EPMSSingleton.getInstance().sysModsClientList = EPMSSingleton.getInstance().sysModsList;
+			}
+			
+			public function loadAddUserModPopup() : void
+			{
+				Helper.editNameWindow=PopUpManager.createPopUp(FlexGlobals.topLevelApplication.successfullyLogin, AddUserModPopup, true); 
+				// cast to a nameEditorPopup
+				addUserModPopup = AddUserModPopup(Helper.editNameWindow); 
+			}
+			
+			public function underConstruction():void
+			{
+				Alert.show("Functionality Not Available Yet!!!", "Under Construction", 4, null, null, Helper.noEntryImg);
+			}
+			
+			public function refresh() : void 
+			{
+				searchInput.text = "< Enter your search here >";
+			}
+			
+			public var selectedUser : Userepms = new Userepms;
+			public function getSelectedUser(event:IndexChangeEvent):void
+			{
+				selectedUser = usersInput.selectedItem;
+				EPMSSingleton.getInstance().selectedUser = selectedUser;
+				
+				getAllUsermods();
+			}
+			
+		]]>
+	</fx:Script>
+	<mx:VBox verticalGap="0" width="100%" height="100%" paddingLeft="5" paddingBottom="5" paddingRight="5" paddingTop="5">
+		
+		<mx:Canvas x="80" y="49" width="100%" height="45" borderVisible="false">
+			<s:HGroup width="100%">
+				<s:VGroup>
+					<s:DropDownList id="usersInput" width="220" labelField="name" dataProvider="{EPMSSingleton.getInstance().usersList}" prompt="Select User"
+									change="getSelectedUser(event)"/>
+				</s:VGroup>
+				
+				<s:Label width="91" height="19" fontSize="14" text="Search:"/>
+				<s:VGroup>
+					<s:TextInput id="searchInput" x="68" y="7" width="186" change="search()" text="&lt; Enter your search here &gt;"
+								 click="clearInnerText()"/>
+				</s:VGroup>
+				<mx:Canvas width="80%" borderVisible="false"/>
+				<mx:Canvas id="refreshBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="refresh()">
+					<mx:Image source="@Embed('images/BtnRefresh.png')"/>
+				</mx:Canvas>
+			</s:HGroup>
+		</mx:Canvas>
+		
+		<mx:Spacer/>
+		
+		<!--{EPMSSingleton.getInstance().userModsList-->
+		
+		<s:HGroup width="100%" paddingBottom="5">
+			<s:Label height="25" fontWeight="bold" paddingBottom="5" paddingLeft="0" paddingRight="5" paddingTop="5" 
+					 text="Search returned {EPMSSingleton.getInstance().userModsList.length} result(s) for {EPMSSingleton.getInstance().selectedUser.name +EPMSSingleton.getInstance().space
+					 + EPMSSingleton.getInstance().selectedUser.surname}"/>
+			<mx:Canvas width="80%" borderVisible="false"/>
+			<s:Label text="User Access Rights Control" paddingTop="5" fontWeight="bold" fontSize="16"/>
+			<mx:Canvas width="80%" borderVisible="false"/>
+			<mx:Canvas id="addUserBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="addUserMod()">
+				<mx:Image source="@Embed('images/BtnCreate.png')"/>
+			</mx:Canvas>
+		</s:HGroup>
+		
+		<mx:DataGrid id="userListDG" height="100%" width="100%" dataProvider="{EPMSSingleton.getInstance().userModsList}">
+			<mx:columns>
+				<mx:DataGridColumn headerText="MODULE NAME" dataField="module.name" id="nameDC"/>
+				<mx:DataGridColumn headerText="CODE" dataField="module.code" id="codeDC"/>
+				<mx:DataGridColumn headerText="DESCRIPTION" dataField="module.description" id="descDC"/>
+				<mx:DataGridColumn itemRenderer="content.UsersAccessItemRender" headerText=""/>
+			</mx:columns>
+		</mx:DataGrid>
+
+	</mx:VBox>
+	
+</mx:VBox>
+

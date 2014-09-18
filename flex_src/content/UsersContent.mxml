@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox verticalGap="0" color="#004B36" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" xmlns:utils="utils.*" xmlns:content="content.*"
+		 >
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<fx:Style>
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		@namespace utils "utils.*";
+		@namespace content "content.*";
+		
+		s|LinkBar
+		{
+			skinClass: ClassReference("skins.CustomButtonSkin");
+		}
+		
+	</fx:Style>
+	
+	<fx:Script>
+		<![CDATA[
+			
+		]]>
+	</fx:Script>
+	
+	<mx:Panel  width="100%" height="100%"
+			  layout="absolute" title="Epsitech Performance Management Suite (ePMS)" creationPolicy="all">
+		<mx:LinkBar dataProvider="{usersManagementVS}" color="#0B1FE0" fontWeight="bold"/>
+		
+		<mx:ViewStack horizontalCenter="0" y="30" id="usersManagementVS" width="98%" height="95%" borderStyle="solid">
+			
+			<content:Users id="userssVS" width="100%" height="100%" label="List Users"/>
+			<content:UsersAccess id="usersAccessVS" width="100%" height="100%" label="Maintain User"/>
+			
+		</mx:ViewStack>
+	</mx:Panel>
+	
+</mx:VBox>
+

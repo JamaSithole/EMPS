@@ -1,0 +1,174 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow  xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%"
+				creationComplete="init()" title="Add Directorate"
+				close="cancel()">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		
+	</fx:Declarations>
+	
+	<fx:Style source="style/epms.css"/>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.repository.Clustertbl;
+			import co.za.ngwane.epms.repository.Directorate; EPMSSingleton
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.helper.Status;
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.repository.Userepms;
+			
+			import flashx.textLayout.formats.Float;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.controls.Text;
+			import mx.core.FlexGlobals;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			import spark.events.IndexChangeEvent;
+			
+			public function init() : void
+			{
+				PopUpManager.centerPopUp(this);
+			}
+			
+			public function cancel() : void
+			{
+				PopUpManager.removePopUp(this);
+			}
+			
+			public function seacrh():void
+			{
+				
+			}
+			
+			public var errorMSG:String = new String();
+			public function isValid():Boolean
+			{
+				if(selectedCluster == null)
+				{
+					errorMSG += "Please Select Cluster.\n";
+				}
+				if(nameInput.text == "")
+				{
+					errorMSG += "Please Enter Name.\n";
+				}
+				if(descInput.text == "")
+				{
+					errorMSG += "Please Enter Description.\n";
+				}
+				if(errorMSG.length > 3) 
+				{
+					return false;
+				}
+				else
+				{
+					return true;
+				}
+			}
+			
+			public var selectedCluster : Clustertbl = new Clustertbl;
+			public function getSelectedCluster(event:IndexChangeEvent):void
+			{
+				selectedCluster = clusterInput.selectedItem;
+			}
+			
+			public function doSubmitDir():void
+			{
+				if(isValid()) 
+				{
+					var dir : co.za.ngwane.epms.repository.Directorate = new co.za.ngwane.epms.repository.Directorate();
+					var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+					
+					dir.name = nameInput.text;
+					dir.description = descInput.text;
+					dir.clusterid = selectedCluster;
+					
+					remoteObject.destination = "directorateOperations";
+					remoteObject.add(dir);
+					remoteObject.addEventListener(FaultEvent.FAULT, addDirFaultHandler);
+					remoteObject.addEventListener(ResultEvent.RESULT, addDirResultHandler);
+					cursorManager.setBusyCursor();
+				}
+				else
+				{
+					Alert.show(errorMSG,"Validation Failure", 4, null, null,Helper.noEntryImg);
+					errorMSG = "";
+				}
+			}
+			
+			public function addDirResultHandler(event:ResultEvent):void
+			{
+				var result : Boolean = event.result as Boolean;
+				if(result)
+				{	
+					Alert.show("Directorate added successfully.","Successful", 4, null, null,Helper.accept);
+					cancel();
+					clearForm();
+					FlexGlobals.topLevelApplication.login.getAllDir();
+				}
+				else
+				{
+					Alert.show("Failed to add directorate.","Error", 4, null, null,Helper.noEntryImg);
+				}
+				cursorManager.removeBusyCursor();
+			}
+			
+			var dotSeparator : String = ".";
+			
+			public function clearForm() : void
+			{
+				nameInput.text = "";
+			}
+			
+			public static function addDirFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to add directorate.","Failure", 4, null, null,Helper.noEntryImg);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<mx:HBox width="100%" height="100%">
+		<mx:Canvas  width="30%" height="100%"/>
+		
+		<mx:Form width="60%" height="100%">
+			<mx:Spacer/>
+			<s:Label text="Enter Directorate's Info " fontWeight="bold" textAlign="center"/>
+			<mx:FormItem label="Name:" >
+				<s:TextInput id="nameInput" width="220"/>
+			</mx:FormItem>
+			<mx:FormItem label="Description:">
+				<s:TextInput id="descInput" width="220" height="61"/>
+			</mx:FormItem>
+			<mx:FormItem label="Cluster:">
+				<s:DropDownList id="clusterInput" width="220" dataProvider="{EPMSSingleton.getInstance().clusterList}" prompt="Select Cluster"
+								change="getSelectedCluster(event)"
+								labelField="name"/>
+			</mx:FormItem>
+			
+			<mx:HBox width="50%" horizontalAlign="center" paddingLeft="70">
+				<mx:Canvas id="submitBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="doSubmitDir()">
+					<mx:Image source="@Embed('images/BtnSubmit.png')"/>
+				</mx:Canvas>
+				<mx:Canvas id="refreshBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="cancel()">
+					<mx:Image source="@Embed('images/BtnCancel.png')"/>
+				</mx:Canvas>
+			</mx:HBox>
+		</mx:Form>
+		
+		<mx:Canvas  width="10%" height="100%"/>
+	</mx:HBox>
+	
+</s:TitleWindow >

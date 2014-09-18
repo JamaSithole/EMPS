@@ -1,0 +1,248 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox verticalGap="0" color="#004B36" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" xmlns:utils="utils.*"
+		 show="init()"  xmlns:content="content.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.repository.Clustertbl;
+			import co.za.ngwane.epms.repository.Dept;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.core.IFlexDisplayObject;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			import spark.events.IndexChangeEvent;
+			
+			[Bindable]
+			public var clusterObj : Object;
+			
+			public function init():void
+			{
+				//getAllDept();
+				
+				if(EPMSSingleton.getInstance().selectedCluster != null)
+				{
+					getDeptByCluster(EPMSSingleton.getInstance().selectedCluster);
+					
+					for each(var clusterItem:Object in EPMSSingleton.getInstance().clusterList)
+					{
+						if(EPMSSingleton.getInstance().selectedCluster.name == clusterItem.name)
+						{
+							clusterInput.selectedItem = clusterObj = clusterItem;
+							break;
+						}
+					}
+				}
+			}
+			
+			public function setWidth() : void 
+			{
+			}
+			
+			public function search():void
+			{
+				if(searchInput.text != "")
+				{
+					var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+					var searchKey = searchInput.text;
+					remoteObject.destination = "departmentOperations";
+					remoteObject.addEventListener(FaultEvent.FAULT, searchFaultHandler);
+					remoteObject.addEventListener(ResultEvent.RESULT, searchResultHandler);
+					remoteObject.searchDept(searchKey);
+					cursorManager.setBusyCursor();
+				}
+				else
+				{
+					searchInput.text = "< Enter your search here >";
+					//getAllDept();
+				}
+			}
+			
+			public function searchResultHandler(event:ResultEvent):void
+			{
+				deptList = (event.result as ArrayCollection);
+				//Alert.show("Result Search is: "+clientsList.length);
+				if(deptList.length != 0)
+				{
+					deptListDG.dataProvider = deptList;
+				} 
+				else
+				{
+					Alert.show("Department info not found.","Error", 4, null, null, Helper.noEntryImg);
+				}
+				cursorManager.removeBusyCursor();
+			}
+			
+			public static function searchFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to search please contact your administrator if this continues.","Failure", 4, null, null,Helper.noEntryImg);
+			}
+			
+			public function clearInnerText():void
+			{
+				if(searchInput.text == "< Enter your search here >")
+				{
+					searchInput.text = "";
+				}
+				
+			}
+			
+			public function getAllDept():void
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				remoteObject.destination = "departmentOperations";
+				remoteObject.addEventListener(FaultEvent.FAULT, getAllDeptFaultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT, getAllDeptResultHandler);
+				remoteObject.getAllDept();
+				cursorManager.setBusyCursor();
+			}
+			
+			public static function getAllDeptFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to load department please contact your administrator if this continues.","Failure", 4, null, null,Helper.noEntryImg);
+			}
+			
+			public function getAllDeptResultHandler(event:ResultEvent):void
+			{
+				//Alert.show("event.result: \n"+event.result);
+				deptList = (event.result as ArrayCollection);
+				EPMSSingleton.getInstance().dirList = deptList;
+				deptListDG.dataProvider = deptList;
+				cursorManager.removeBusyCursor();
+				setWidth();
+			}
+			
+			public var loadPopUp:IFlexDisplayObject; 
+			//public var myPopUp:AddDept; 
+			
+			public var addDeptPopup : AddDeptPopup; 
+			
+			public function addDept() : void
+			{
+				if(EPMSSingleton.getInstance().deptAdd)
+				{
+					Helper.editNameWindow=PopUpManager.createPopUp(FlexGlobals.topLevelApplication.successfullyLogin, AddDeptPopup, true); 
+					// cast to a nameEditorPopup
+					addDeptPopup = AddDeptPopup(Helper.editNameWindow); 
+				}
+				
+				else
+				{
+					Alert.show("You have no permission to add department","Permission Error", 4, null, null,Helper.noEntryImg);
+				}
+			}
+			
+			public function refresh() : void 
+			{
+				getAllDept();
+				searchInput.text = "< Enter your search here >";
+			}
+			
+			public function getSelectedDept() : void 
+			{
+				EPMSSingleton.getInstance().selectedDept = deptListDG.selectedItem as co.za.ngwane.epms.repository.Dept;
+				(this.parent as ViewStack).selectedChild = FlexGlobals.topLevelApplication.municipalContent.directorateVS;
+			}
+			
+			public var selectedCluster : Clustertbl = new Clustertbl;
+			public function getSelectedCluster(event:IndexChangeEvent):void
+			{
+				selectedCluster = clusterInput.selectedItem;
+				getDeptByCluster(selectedCluster);
+			}
+			
+			public function getDeptByCluster(clusterName : Clustertbl) : void
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				remoteObject.destination = "departmentOperations";
+				remoteObject.addEventListener(FaultEvent.FAULT, getDeptByDirFaultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT, getDeptByDirResultHandler);
+				remoteObject.getDeptByCluster(clusterName);
+				cursorManager.setBusyCursor();
+			}
+			
+			public static function getDeptByDirFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to load departments please contact your administrator if this continues.","Failure", 4, null, null,Helper.noEntryImg);
+			}
+			
+			public var deptList:ArrayCollection = EPMSSingleton.getInstance().deptList;
+			
+			public function getDeptByDirResultHandler(event:ResultEvent):void
+			{
+				//Alert.show("getAllDeptResultHandler event.result: \n"+event.result);
+				deptList = (event.result as ArrayCollection);
+				EPMSSingleton.getInstance().deptList = deptList;
+				
+				for each (var dept : co.za.ngwane.epms.repository.Dept in EPMSSingleton.getInstance().deptList )
+				{
+					EPMSSingleton.getInstance().deptNameList.addItem(dept.name);
+				}
+				
+				cursorManager.removeBusyCursor();
+			}
+		]]>
+	</fx:Script>
+	<mx:VBox verticalGap="0" width="100%" height="100%" paddingLeft="5" paddingBottom="5" paddingRight="5" paddingTop="5">
+		
+		<mx:Canvas x="80" y="49" width="100%" height="45" borderVisible="false">
+			<s:HGroup width="100%">
+				<s:DropDownList id="clusterInput" width="220" dataProvider="{EPMSSingleton.getInstance().clusterList}" prompt="Select Cluster"
+								change="getSelectedCluster(event)" labelField="name"/>
+				<mx:Spacer/><mx:Spacer/>
+				<s:VGroup>
+					<s:TextInput id="searchInput" x="68" y="7" width="186" change="search()" click="clearInnerText()"
+								 prompt="search departments"/>
+				</s:VGroup>
+				<mx:Canvas width="80%" borderVisible="false"/>
+				<!--<mx:Canvas id="refreshBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="refresh()">
+				<mx:Image source="@Embed('images/BtnRefresh.png')"/>
+				</mx:Canvas>-->
+			</s:HGroup>
+		</mx:Canvas>
+		
+		<mx:Spacer/>
+		
+		<s:HGroup width="100%" paddingBottom="5">
+			<s:Label height="25" fontWeight="bold" paddingBottom="5" paddingLeft="0" paddingRight="5"
+					 paddingTop="5" text="Search returned {EPMSSingleton.getInstance().deptList.length} result(s)"/>
+			<mx:Canvas width="80%" borderVisible="false"/>
+			<s:Label text="Municipal Departments" paddingTop="5" fontWeight="bold" fontSize="16"/>
+			<mx:Canvas width="80%" borderVisible="false"/>
+			<mx:Canvas id="addDeptBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="addDept()">
+				<mx:Image source="@Embed('images/BtnCreate.png')"/>
+			</mx:Canvas>
+		</s:HGroup>
+		
+		<mx:DataGrid id="deptListDG" height="100%" width="100%" dataProvider="{EPMSSingleton.getInstance().deptList}"
+					 doubleClick="getSelectedDept()" doubleClickEnabled="true">
+			<mx:columns>
+				<mx:DataGridColumn headerText="ID" dataField="id" visible="false" width="40"/>
+				<mx:DataGridColumn headerText="Name" dataField="name" id="nameDC"/>
+				<mx:DataGridColumn headerText="Cluster" dataField="clusterid.name" id="clusterDC" />
+				<mx:DataGridColumn itemRenderer="content.DeptItemRender" visible="true" headerText=""/>
+			</mx:columns>
+		</mx:DataGrid>
+	</mx:VBox>
+	
+</mx:VBox>
+

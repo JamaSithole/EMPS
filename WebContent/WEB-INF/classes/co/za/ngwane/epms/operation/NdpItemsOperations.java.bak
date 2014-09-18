@@ -1,0 +1,33 @@
+package co.za.ngwane.epms.operation;
+
+import java.util.List;
+import java.util.logging.Logger;
+
+import co.za.ngwane.epms.repository.Ndp;
+import co.za.ngwane.epms.repository.Ndpltems;
+import co.za.ngwane.epms.serviceImpl.NdpItemServiceImpl;
+import co.za.ngwane.epms.serviceImpl.NdpServiceImpl;
+
+public class NdpItemsOperations {
+
+	private static Logger logger = Logger
+			.getLogger("co.za.ngwane.epms.operation.NdpItemsOperations");
+
+	public List<Ndpltems> getByNdp( String ndpName ) throws Exception {
+		List<Ndpltems> ndpItemList = null;
+		try {
+			//get ndp by name
+			Ndp ndp = new NdpServiceImpl().getByName(ndpName);
+			
+			ndpItemList = new NdpItemServiceImpl().getByNdp(ndp);
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.info("Exception caught in List<Ndpltems> getByNdp() : "
+					+ e.getMessage());
+		}
+		
+		return ndpItemList;
+	}
+
+}

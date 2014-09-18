@@ -1,0 +1,16 @@
+13 February 2014
+
+
+Most Importantly
+	Need to make sure that Env variable points to the correct environment when taking things to the server
+	
+	
+Deployment Notes
+	1. If you have added any new table please update the persistance.xml file in the config folder as to reflect the made changes
+	2. Depending on the environment you are deploying to please replace the confiq files accordingly, 
+			i.e services-config.xml and persistence.xml
+	3. Update the ENV field in userepms table with respect to the environment of interest, TST for TEST and DEV for development. 
+			This need to be improved through congiq file, I will make time for it.
+			
+NB : 
+	Clean and build will avoid u too much of trouble after replacing the confiq files, just do a clean and build before exporting the war file

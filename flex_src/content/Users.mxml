@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox verticalGap="0" color="#004B36" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" xmlns:utils="utils.*"
+		 creationComplete="init()" show="usersShow()" xmlns:content="content.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.repository.Userepms;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.core.IFlexDisplayObject;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			public function init():void
+			{
+				//getAllUsers();
+				EPMSSingleton.getInstance().selectedUser = new Userepms;
+			}
+			
+			public function setWidth() : void 
+			{
+				nameDC.width = 120;
+				middleNameDC.width = 120;
+				surnameDC.width = 120;
+			}
+			
+			[bindable]
+			public function usersShow():void
+			{
+				FlexGlobals.topLevelApplication.login.getAllUsers();
+			}
+			
+			public function search():void
+			{
+				if(searchInput.text != "")
+				{
+					var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+					var searchKey = searchInput.text;
+					remoteObject.destination = "userOperations";
+					remoteObject.addEventListener(FaultEvent.FAULT, faultHandler);
+					remoteObject.addEventListener(ResultEvent.RESULT, searchResultHandler);
+					remoteObject.searchUser(searchKey);
+					cursorManager.setBusyCursor();
+				}
+				else
+				{
+					searchInput.text = "< Enter your search here >";
+					//getAllUsers();
+				}
+			}
+			
+			public function searchResultHandler(event:ResultEvent):void
+			{
+				usersList = (event.result as ArrayCollection);
+				//Alert.show("Result Search is: "+clientsList.length);
+				if(usersList.length != 0)
+				{
+					userListDG.dataProvider = usersList;
+				} 
+				else
+				{
+					Alert.show("User info not found.","Error", 4, null, null, Helper.noEntryImg);
+				}
+				cursorManager.removeBusyCursor();
+			}
+			
+			public static function faultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Login Failed Please Contact Your Administrator.","Failure", 4, null, null,Helper.noEntryImg);
+			}
+			
+			public function clearInnerText():void
+			{
+				if(searchInput.text == "< Enter your search here >")
+				{
+					searchInput.text = "";
+				}
+				
+			}
+			
+			public function getAllUsers():void
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				remoteObject.destination = "userOperations";
+				remoteObject.addEventListener(FaultEvent.FAULT, faultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT, getAllUserResultHandler);
+				remoteObject.getAllUser();
+				cursorManager.setBusyCursor();
+			}
+			
+			public var usersList:ArrayCollection = EPMSSingleton.getInstance().usersList;
+			
+			public function getAllUserResultHandler(event:ResultEvent):void
+			{
+				Alert.show("event.result: \n"+event.result);
+				usersList = (event.result as ArrayCollection);
+				EPMSSingleton.getInstance().usersList = usersList;
+				userListDG.dataProvider = usersList;
+				cursorManager.removeBusyCursor();
+				setWidth();
+			}
+			
+			public var loadPopUp:IFlexDisplayObject; 
+			//public var myPopUp:AddUser; 
+			
+			public var addUserPopUp : AddUserPopup; 
+			
+			public function addUser() : void
+			{
+				if(EPMSSingleton.getInstance().userAdd)
+				{
+					
+					Helper.editNameWindow=PopUpManager.createPopUp(FlexGlobals.topLevelApplication.successfullyLogin, AddUserPopup, true); 
+					// cast to a nameEditorPopup
+					addUserPopUp = AddUserPopup(Helper.editNameWindow); 
+					
+					//underConstruction();
+				}
+				
+				else
+				{
+					Alert.show("You have no permission to add user","Permission Error", 4, null, null,Helper.noEntryImg);
+				}
+			}
+			
+			public function underConstruction():void
+			{
+				Alert.show("Functionality Not Available Yet!!!", "Under Construction", 4, null, null, Helper.noEntryImg);
+			}
+			
+			public function refresh() : void 
+			{
+				//getAllUsers();
+				searchInput.text = "< Enter your search here >";
+			}
+			
+			public function getSelectedUser() : void 
+			{
+				//EPMSSingleton.getInstance().selectedUser = userListDG.selectedItem as Userepms;
+				//(this.parent as ViewStack).selectedIndex = 2;
+				(this.parent as ViewStack).selectedChild = FlexGlobals.topLevelApplication.usersContent.usersAccessVS;
+			}
+			
+		]]>
+	</fx:Script>
+	<mx:VBox verticalGap="0" width="100%" height="100%" paddingLeft="5" paddingBottom="5" paddingRight="5" paddingTop="5">
+		
+		<mx:Canvas x="80" y="49" width="100%" height="45" borderVisible="false">
+			<s:HGroup width="100%">
+				<s:Label width="91" height="19" fontSize="14" text="Search:"/>
+				<s:VGroup>
+					<s:TextInput id="searchInput" x="68" y="7" width="186" change="search()" text="&lt; Enter your search here &gt;"
+								 click="clearInnerText()"/>
+					<s:Label text="search by any other field" paddingBottom="2" paddingLeft="2" paddingRight="2" fontSize="10"/>
+				</s:VGroup>
+				<mx:Canvas width="80%" borderVisible="false"/>
+				<mx:Canvas id="refreshBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="refresh()">
+					<mx:Image source="@Embed('images/BtnRefresh.png')"/>
+				</mx:Canvas>
+			</s:HGroup>
+		</mx:Canvas>
+		
+		<mx:Spacer/>
+		
+		<s:HGroup width="100%" paddingBottom="5">
+			<s:Label height="25" fontWeight="bold" paddingBottom="5" paddingLeft="0" paddingRight="5"
+					 paddingTop="5" text="Search returned {EPMSSingleton.getInstance().usersList.length} result(s)"/>
+			<mx:Canvas width="80%" borderVisible="false"/>
+			<s:Label text="Users Administration" paddingTop="5" fontWeight="bold" fontSize="16"/>
+			<mx:Canvas width="80%" borderVisible="false"/>
+			<mx:Canvas id="addUserBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="addUser()">
+				<mx:Image source="@Embed('images/BtnCreate.png')"/>
+			</mx:Canvas>
+		</s:HGroup>
+		
+		<mx:DataGrid id="userListDG" height="100%" width="100%" dataProvider="{EPMSSingleton.getInstance().usersList}"
+					 itemDoubleClick="getSelectedUser()" doubleClickEnabled="true">
+			<mx:columns>
+				<mx:DataGridColumn headerText="ID" dataField="id" visible="false" width="40"/>
+				<mx:DataGridColumn headerText="NAME" dataField="name" id="nameDC"/>
+				<mx:DataGridColumn headerText="MIDDLE NAME" dataField="middlename" id="middleNameDC"/>
+				<mx:DataGridColumn headerText="SURNAME" dataField="surname" id="surnameDC"/>
+				<mx:DataGridColumn itemRenderer="content.UsersItemRender" headerText=""/>
+			</mx:columns>
+		</mx:DataGrid>
+
+	</mx:VBox>
+	
+</mx:VBox>
+

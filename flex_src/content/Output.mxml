@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox verticalGap="0" color="#004B36" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" xmlns:utils="utils.*"
+		 creationComplete="init()"  show="init()" xmlns:content="content.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.repository.Outputtbl;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.core.IFlexDisplayObject;
+			import mx.core.IToolTip;
+			import mx.events.ToolTipEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			public function init():void
+			{
+				getAll();
+			}
+			
+			public function getAll():void
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				remoteObject.destination = "outputOperations";
+				remoteObject.addEventListener(FaultEvent.FAULT, getAllFaultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT, getAllResultHandler);
+				remoteObject.getOutput(EPMSSingleton.getInstance().selectedOutcome);
+				cursorManager.setBusyCursor();
+			}
+			
+			public static function getAllFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to load outputs please contact your administrator if this continues.","Failure", 4, null, null,Helper.noEntryImg);
+			}
+			
+			public var outputList:ArrayCollection = EPMSSingleton.getInstance().outputList;
+			
+			public function getAllResultHandler(event:ResultEvent):void
+			{
+				//Alert.show("Output getAllResultHandler event.result: \n"+event.result);
+				outputList = (event.result as ArrayCollection);
+				EPMSSingleton.getInstance().outputList = outputList;
+				outputDG.dataProvider = EPMSSingleton.getInstance().outputList;
+				
+				cursorManager.removeBusyCursor();
+				setWidth();
+			}
+			
+			public function setWidth() : void 
+			{
+
+			}
+			
+			public var loadPopUp:IFlexDisplayObject; 
+			//public var myPopUp:AddUser; 
+			
+			public var addActualsPopup : AddActualsPopup; 
+			
+			public function addAtual() : void
+			{
+				if(EPMSSingleton.getInstance().outcomeAdd)
+				{
+					if(EPMSSingleton.getInstance().selectedOutput == null)
+					{
+						Alert.show("Please select an output","No Output Selected", 4, null, null,Helper.noEntryImg);
+					}
+					else if(EPMSSingleton.getInstance().selectedOutput.outputComplete == true)
+					{
+						Alert.show("All Quaters have been captured","Output complete", 4, null, null,Helper.noEntryImg);
+					}
+					else
+					{
+						
+						Helper.editNameWindow=PopUpManager.createPopUp(FlexGlobals.topLevelApplication.successfullyLogin, AddActualsPopup, true); 
+						// cast to a nameEditorPopup
+						addActualsPopup = AddActualsPopup(Helper.editNameWindow); 
+						
+						//(this.parent as ViewStack).selectedChild = FlexGlobals.topLevelApplication.sectionContent.addActualVS;
+					}
+				}
+				else
+				{
+					Alert.show("You have no permission to add actuals","Permission Error", 4, null, null, Helper.noEntryImg);
+				}
+			}
+			
+			public function createActualMO() : void
+			{
+				//Alert.show("... Fuck U ...");
+				addUserBT.addEventListener(ToolTipEvent.TOOL_TIP_SHOW, onToolTip);
+			}
+			
+			public function onToolTip(event:ToolTipEvent):void
+			{
+				var toolTip:IToolTip = event.toolTip;
+				//myLabel.text = toolTip.text;
+			}
+			
+			public function getSelectedOutputDG() : void
+			{
+				EPMSSingleton.getInstance().selectedOutput = outputDG.selectedItem as Outputtbl;
+			}
+			
+			public function getSelectedOutput() : void
+			{
+				//(this.parent as ViewStack).selectedIndex = 4;
+				(this.parent as ViewStack).selectedChild = FlexGlobals.topLevelApplication.sectionContent.outputDetVS;
+			}
+			
+			public function myColStyleFunc(data:Object, ol:AdvancedDataGridColumn) : Object
+			{
+				/* 
+				ePMS Color Codes
+				
+				Red 			#FF0000
+				Yellow 			#FFFF00
+				Green 			#00FF00
+				DarkGreen 		#006600
+				Blue 			#0000FF
+				*/
+				
+				/*
+				if(data["currq"] == EPMSSingleton.getInstance().Q1)
+				{
+					var q1Score : Number = data["q1a"] + data["q1"];
+					
+					if(q1Score < 100)
+					{
+						return {color:0x00FF00};
+					}
+				}
+				
+				if(data["currq"] == EPMSSingleton.getInstance().Q2)
+				{
+					var test : Number = data["q2a"] + data["q2"];
+						
+					if(data["q2a"] <= 100)
+					{
+						return {color:0x00FF00};
+					}
+				}
+				*/
+				
+				if(data["q1a"] <= 11)
+				{
+					return {color:0x00FF00};
+				}
+				
+				return null;
+			}  
+			
+			// Callback function that highlights in red 
+			// all rows for the selected artist.
+			public function myStyleFunc(data:Object, 
+										col:AdvancedDataGridColumn):Object
+			{
+				//One will do the styling here  
+				return null;
+			}
+			
+		]]>
+	</fx:Script>
+	<mx:VBox verticalGap="0" width="100%" height="100%" paddingLeft="5" paddingBottom="5" paddingRight="5" paddingTop="5">
+		
+		<mx:Spacer/>
+		
+		<s:HGroup width="100%" paddingBottom="5">
+			<s:Label height="25" fontWeight="bold" paddingBottom="5" paddingLeft="0" paddingRight="5"
+					 paddingTop="5" text="Search returned {EPMSSingleton.getInstance().outputList.length} result(s)"/>
+			<mx:Canvas width="80%" borderVisible="false"/>
+			<mx:Canvas id="addUserBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="addAtual()" mouseOver="createActualMO()"
+					   toolTip="Create or edit actual values">
+				<mx:Image source="@Embed('images/BtnAmend.png')" />
+			</mx:Canvas>
+		</s:HGroup>
+		
+		<mx:AdvancedDataGrid id="outputDG" 
+							 width="100%" height="100%" 
+							 dataProvider="{EPMSSingleton.getInstance().outputList}" itemClick="getSelectedOutputDG()"
+							 itemDoubleClick="getSelectedOutput()" doubleClickEnabled="true"
+							 styleFunction="myStyleFunc">
+			
+			<mx:groupedColumns>
+				
+				<mx:AdvancedDataGridColumn headerText="Ref No" dataField="refno" width="150"/>
+				<mx:AdvancedDataGridColumn headerText="Indicator" dataField="indicator" width="350"/>
+				<mx:AdvancedDataGridColumn headerText="Status" dataField="refno" width="200"/>
+				
+				<mx:AdvancedDataGridColumnGroup headerText="Qauter 1" width="120">    
+					<mx:AdvancedDataGridColumn dataField="q1" headerText="T"/>
+					<mx:AdvancedDataGridColumn dataField="q1a" headerText="A" styleFunction="myColStyleFunc"/>
+					<mx:AdvancedDataGridColumn dataField="q1fs" headerText="FS"/>
+				</mx:AdvancedDataGridColumnGroup>   
+				
+				<mx:AdvancedDataGridColumnGroup headerText="Qauter 2" width="120">    
+					<mx:AdvancedDataGridColumn dataField="q2" headerText="T"/>
+					<mx:AdvancedDataGridColumn dataField="q2a" headerText="A"/>
+					<mx:AdvancedDataGridColumn dataField="q2fs" headerText="FS"/>
+				</mx:AdvancedDataGridColumnGroup>   
+				
+				<mx:AdvancedDataGridColumnGroup headerText="Qauter 3" width="120">    
+					<mx:AdvancedDataGridColumn dataField="q3" headerText="T"/>
+					<mx:AdvancedDataGridColumn dataField="q3a" headerText="A"/>
+					<mx:AdvancedDataGridColumn dataField="q3fs" headerText="FS"/>
+				</mx:AdvancedDataGridColumnGroup> 
+				
+				<mx:AdvancedDataGridColumnGroup headerText="Qauter 4" width="120">    
+					<mx:AdvancedDataGridColumn dataField="q4" headerText="T"/>
+					<mx:AdvancedDataGridColumn dataField="q4a" headerText="A"/>
+					<mx:AdvancedDataGridColumn dataField="q4fs" headerText="FS"/>
+				</mx:AdvancedDataGridColumnGroup>   
+				
+				<mx:AdvancedDataGridColumn headerText="Ave. Score" dataField="avgScore" width="150"/>
+				
+			</mx:groupedColumns>
+			
+		</mx:AdvancedDataGrid>
+		
+	</mx:VBox>
+	
+</mx:VBox>
+

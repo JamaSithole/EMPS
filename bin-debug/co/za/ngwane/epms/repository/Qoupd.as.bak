@@ -1,0 +1,199 @@
+package co.za.ngwane.epms.repository
+{
+	[Binable][RemoteClass(alias="co.za.ngwane.epms.repository.Qoupd")]
+	public class Qoupd
+	{
+		private var _id : Number;
+		
+		private var _quo : String;
+		private var _qscore : Number;
+		private var _comment : String;
+		private var _paction : Date; 	// planned action
+		private var _pastartd : Date; 	// plan action start date
+		private var _paendd : Date; 	// plan action end date
+		private var _auditstatus : String;
+		private var _outputtblid : Outputtbl;
+		private var _stat : Number;
+		private var _tmet : Boolean;
+		private var _reasonf : String;
+		private var _coraction : String;
+		private var _createD : Date;
+		private var _statUpdateD : Date;
+		private var _currentqTarget : String;
+		private var _statusDescription : String;
+		
+		//the below are fields that I think they need to be introduced
+		
+		public function get statusDescription():String
+		{
+			return _statusDescription;
+		}
+
+		public function set statusDescription(value:String):void
+		{
+			_statusDescription = value;
+		}
+
+		public function get id():Number
+		{
+			return _id;
+		}
+
+		public function set id(value:Number):void
+		{
+			_id = value;
+		}
+
+		public function get quo():String
+		{
+			return _quo;
+		}
+
+		public function set quo(value:String):void
+		{
+			_quo = value;
+		}
+
+		public function get comment():String
+		{
+			return _comment;
+		}
+
+		public function set comment(value:String):void
+		{
+			_comment = value;
+		}
+
+		public function get paction():Date
+		{
+			return _paction;
+		}
+
+		public function set paction(value:Date):void
+		{
+			_paction = value;
+		}
+
+		public function get pastartd():Date
+		{
+			return _pastartd;
+		}
+
+		public function set pastartd(value:Date):void
+		{
+			_pastartd = value;
+		}
+
+		public function get paendd():Date
+		{
+			return _paendd;
+		}
+
+		public function set paendd(value:Date):void
+		{
+			_paendd = value;
+		}
+
+		public function get auditstatus():String
+		{
+			return _auditstatus;
+		}
+
+		public function set auditstatus(value:String):void
+		{
+			_auditstatus = value;
+		}
+
+		public function get outputtblid():Outputtbl
+		{
+			return _outputtblid;
+		}
+
+		public function set outputtblid(value:Outputtbl):void
+		{
+			_outputtblid = value;
+		}
+
+		public function get stat():Number
+		{
+			return _stat;
+		}
+
+		public function set stat(value:Number):void
+		{
+			_stat = value;
+		}
+
+		public function get tmet():Boolean
+		{
+			return _tmet;
+		}
+
+		public function set tmet(value:Boolean):void
+		{
+			_tmet = value;
+		}
+
+		public function get reasonf():String
+		{
+			return _reasonf;
+		}
+
+		public function set reasonf(value:String):void
+		{
+			_reasonf = value;
+		}
+
+		public function get coraction():String
+		{
+			return _coraction;
+		}
+
+		public function set coraction(value:String):void
+		{
+			_coraction = value;
+		}
+
+		public function get qscore():Number
+		{
+			return _qscore;
+		}
+
+		public function set qscore(value:Number):void
+		{
+			_qscore = value;
+		}
+
+		public function get createD():Date
+		{
+			return _createD;
+		}
+
+		public function set createD(value:Date):void
+		{
+			_createD = value;
+		}
+
+		public function get statUpdateD():Date
+		{
+			return _statUpdateD;
+		}
+
+		public function set statUpdateD(value:Date):void
+		{
+			_statUpdateD = value;
+		}
+
+		public function get currentqTarget():String
+		{
+			return _currentqTarget;
+		}
+
+		public function set currentqTarget(value:String):void
+		{
+			_currentqTarget = value;
+		}
+
+
+	}
+}

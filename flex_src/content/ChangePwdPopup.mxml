@@ -1,0 +1,143 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow  xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%"
+			   creationComplete="init()" title="Change Password"
+			   close="closeWindow()">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.repository.Userepms;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil; 
+			
+			[Bindable]
+			public var DataGridName:Object;
+			
+			[Bindable]
+			public var obj:Object;
+			
+			[Bindable]
+			public var DataGridNameAC:ArrayCollection; 
+			
+			public function init() : void
+			{
+				PopUpManager.centerPopUp(this);
+			}
+			
+			public var user : co.za.ngwane.epms.repository.Userepms  = new co.za.ngwane.epms.repository.Userepms();
+			public var currentUser : co.za.ngwane.epms.repository.Userepms  = EPMSSingleton.getInstance().currentUser;
+			
+			public function closeWindow():void
+			{ 
+				PopUpManager.removePopUp(this);
+			} 
+			
+			public function doChangePwd() : void
+			{
+				var oldPwd : String = oldPasswordInput.text;
+				var newPwd : String  = newPasswordInput.text;
+				var confirmPwd : String  = confirmPasswordInput.text;
+				if(oldPwd == currentUser.password)
+				{
+					if(newPwd == confirmPwd)
+					{
+						changePwd();
+					}
+					else
+					{
+						Alert.show("New password and Confirm password don't match.","Validation Error", 4, null, null,Helper.noEntryImg);
+					}
+				}
+				else
+				{
+					Alert.show("Incorrect Old Password.","Validation Error", 4, null, null,Helper.noEntryImg);
+				}
+			}
+			
+			public function changePwd(): void
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				currentUser.password = newPasswordInput.text;
+				currentUser.tempPassword = false;
+				
+				remoteObject.destination = "userOperations";
+				remoteObject.addEventListener(FaultEvent.FAULT, faultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT, userPwdChangeResultHandler);
+				remoteObject.updateUserPassword(currentUser);
+				cursorManager.showCursor();
+			} 
+			
+			public static function faultHandler(event:FaultEvent):void 
+			{
+				Alert.show( ObjectUtil.toString(event.fault) );
+			}
+			
+			[Bindable]
+			public var loggedInUser : co.za.ngwane.epms.repository.Userepms = new co.za.ngwane.epms.repository.Userepms;
+			
+			public function userPwdChangeResultHandler(event:ResultEvent):void
+			{
+				if(event.result == "User info updated successfully.")
+				{
+					closeWindow();
+					FlexGlobals.topLevelApplication.login.resetScreen();
+					Alert.show("User info updated successfully.","Successful", 4, null, null,Helper.accept);
+				}
+				else
+				{
+					Alert.show("Failed to update User info.","Error", 4, null, null,Helper.noEntryImg);
+				}
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<mx:VBox  horizontalCenter="0" verticalCenter="0">
+		<mx:Canvas width="100%" height="100%">
+			<!--<mx:Image horizontalCenter="0" verticalCenter="0" source="images/MFG_Logo.png" right="0"/>	-->
+		</mx:Canvas>		
+		<mx:Canvas width="400" height="175" cornerRadius="10">
+			<s:BorderContainer width="100%" height="100%" 
+							   backgroundImage="@Embed(source='file:/images/BackgroundImage7.JPG')">
+			<mx:Form horizontalCenter="0" verticalCenter="0" chromeColor="#3EE0C3">
+				<s:Label fontWeight="bold" fontSize="14" text="Fill in the fields below"/>
+				<mx:FormItem label="Old Password" required="true">
+					<s:TextInput color="#000000" id="oldPasswordInput" displayAsPassword="true" width="176"/>
+				</mx:FormItem>
+				<mx:FormItem label="New Password" required="true">
+					<s:TextInput color="#000000" id="newPasswordInput" displayAsPassword="true" width="176"/>
+				</mx:FormItem>
+				<mx:FormItem label="Confirm Password" required="true">
+					<s:TextInput color="#000000" id="confirmPasswordInput" displayAsPassword="true" width="176"/>
+				</mx:FormItem>
+				
+				<mx:HBox horizontalAlign="center" paddingLeft="30">					
+					<mx:Canvas useHandCursor="true" buttonMode="true" mouseChildren="false" click="doChangePwd()">
+						<mx:Button click="doChangePwd()" id="bntLogin" verticalCenter="0" horizontalCenter="0" width="10" height="10"/>
+						<mx:Image source="@Embed('images/BtnChangePassword.png')"/>
+					</mx:Canvas>					
+					<mx:Canvas useHandCursor="true" buttonMode="true" mouseChildren="false" click="closeWindow()">
+						<mx:Image source="@Embed('images/BtnCancel.png')"/>
+					</mx:Canvas>
+				</mx:HBox>	
+				
+			</mx:Form>
+				</s:BorderContainer>
+		</mx:Canvas>
+	</mx:VBox>	
+	
+</s:TitleWindow >

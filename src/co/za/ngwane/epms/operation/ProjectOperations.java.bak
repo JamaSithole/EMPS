@@ -1,0 +1,138 @@
+package co.za.ngwane.epms.operation;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Logger;
+
+import co.za.ngwane.epms.dao.ProjectDAO;
+import co.za.ngwane.epms.helper.PercentageCalc;
+import co.za.ngwane.epms.repository.Progtbl;
+import co.za.ngwane.epms.repository.Projtbl;
+import co.za.ngwane.epms.repository.Userepms;
+import co.za.ngwane.epms.serviceImpl.NdpItemServiceImpl;
+import co.za.ngwane.epms.serviceImpl.ProgramServiceImpl;
+import co.za.ngwane.epms.serviceImpl.ProjectServiceImpl;
+import co.za.ngwane.epms.serviceImpl.UserepmsServiceImpl;
+
+public class ProjectOperations {
+	
+	
+	private static Logger logger = Logger
+			.getLogger("co.za.ngwane.epms.operation.ProjectOperations");
+	
+	public Projtbl addProject(Projtbl projtbl){
+		
+		boolean results = false;
+		logger.info("Entering Project Operations : User Name [" );//TO Be Completed 
+		
+		try {
+			if(projtbl != null){		
+				Progtbl progtbl = new Progtbl();
+				progtbl = projtbl.getProgtblid();
+				
+				if(progtbl != null ){
+					
+					if(projtbl.getTotbud() > progtbl.getTotalbudget()){
+						logger.info("Failed to Add Project, Budget [ " + projtbl.getTotbud() + " ] Allocated greater than Available budget on Program [" + progtbl.getTotalbudget() +" ]");
+						return projtbl;
+					}
+					logger.info("Trying to Add Project Object for Program name : " + projtbl.getProgtblid().getName());
+					
+					projtbl.setScore(0f);
+					projtbl.setBudspend(0f);
+					
+					try {
+						results = new ProjectServiceImpl().add(projtbl);
+						if(results){
+							logger.info("Added Project Object for Program name : " +  projtbl.getProgtblid().getName());
+							float availableBalance = progtbl.getAvbalance() - projtbl.getTotbud();
+							progtbl.setAvbalance(availableBalance);
+							results = new ProgramServiceImpl().update(progtbl);
+							logger.info("Updating Program Available Balance");
+						}
+					} catch (Exception e) {
+						e.printStackTrace();
+					}
+				}
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.info("Failed To Add Project Object for Program name : " +  projtbl.getProgtblid().getName());
+		}
+		
+		return projtbl;
+	}
+	
+	public List<Projtbl> getAll() {
+
+		List<Projtbl> projList = null;
+		List<Projtbl> projListRsl = null;
+		float formattedScore = 0f;
+		try {
+			projList = new ProjectServiceImpl().getAll();
+			
+			projListRsl = new ArrayList<Projtbl>();
+			
+			for(Projtbl proj : projList) {
+				
+				if(proj.getScore() > 0){
+					
+					formattedScore = PercentageCalc.round(proj.getScore(), 2);
+					proj.setScore(formattedScore);
+				}
+				projListRsl.add(proj);
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			logger.info("Exception caught in List<Projtbl> getAll() : "
+					+ e.getMessage());
+		}
+		
+		return projListRsl; 
+	}
+	
+	
+	public List<Projtbl> getProjByProg(String progName) {
+
+		List<Projtbl> projListRsl = new ArrayList<Projtbl>();		
+		try
+		{
+			logger.info("Entering method to retrieve Projects by Program Name : [" + progName + "]");
+			
+			String sql = "";
+			
+			Progtbl progtbl = new ProgramServiceImpl().retrieveByName(progName);
+			
+			if (progName.equalsIgnoreCase("All Projects")) {
+				// Once User - Municipal link has been addressed, this shud change to get projects under
+				// the user's municipal.
+				projListRsl = new ProjectServiceImpl().getAll();
+			} else {
+				projListRsl = new ProjectServiceImpl().getByProgName(progName);
+			}
+			
+			if(projListRsl.isEmpty()){
+				logger.info("No Related projects for  Program Name : [" + progName + "]");				
+			}else{ 
+				logger.info("Found projects related to Program Name : [" + progName + "]");			
+			}
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		
+		return projListRsl; 
+	}
+	
+	public Projtbl retrieveByName(String projectName) throws Exception {
+		Projtbl project =  null;
+		
+		if(projectName != null && !projectName.trim().isEmpty()){
+			project = new ProjectServiceImpl().retrieveByName(projectName);				
+		}		
+		return project;
+	}
+
+
+}

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<persistence version="2.0" xmlns="http://java.sun.com/xml/ns/persistence" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://java.sun.com/xml/ns/persistence http://java.sun.com/xml/ns/persistence/persistence_2_0.xsd">
+  <persistence-unit name="EPMSPU" transaction-type="RESOURCE_LOCAL">
+    <provider>org.eclipse.persistence.jpa.PersistenceProvider</provider>
+    
+		<class>co.za.ngwane.epms.repository.Dept</class>
+		<class>co.za.ngwane.epms.repository.Province</class>
+		<class>co.za.ngwane.epms.repository.Sublevel</class>
+		<class>co.za.ngwane.epms.repository.Userepms</class>
+		<class>co.za.ngwane.epms.repository.Directorate</class>
+		<class>co.za.ngwane.epms.repository.Leveltbl</class>
+		<class>co.za.ngwane.epms.repository.Ndpltems</class>
+		<class>co.za.ngwane.epms.repository.Qoupd</class>
+		<class>co.za.ngwane.epms.repository.Municipal</class>
+		<class>co.za.ngwane.epms.repository.Progtbl</class>
+		<class>co.za.ngwane.epms.repository.Projtbl</class>
+		<class>co.za.ngwane.epms.repository.Clustertbl</class>
+		<class>co.za.ngwane.epms.repository.Outupdate</class>
+		<class>co.za.ngwane.epms.repository.Outputtbl</class>
+		<class>co.za.ngwane.epms.repository.Outcometbl</class>
+		<class>co.za.ngwane.epms.repository.Ndp</class>
+		<class>co.za.ngwane.epms.repository.Sectiontbl</class>
+		<class>co.za.ngwane.epms.repository.Cludept</class>
+		<class>co.za.ngwane.epms.repository.Roleepms</class>
+		<class>co.za.ngwane.epms.repository.Plantbl</class>
+		<class>co.za.ngwane.epms.repository.Attachepms</class>
+		<class>co.za.ngwane.epms.repository.Progndplink</class>
+		<class>co.za.ngwane.epms.repository.Projndplinkitems</class>
+		<class>co.za.ngwane.epms.repository.Usermod</class>
+		<class>co.za.ngwane.epms.repository.Sysmod</class>
+		<class>co.za.ngwane.epms.repository.Usermessages</class>
+		<class>co.za.ngwane.epms.repository.Messagestbl</class>
+    
+    <properties>
+      <property name="javax.persistence.jdbc.url" value="jdbc:mysql://localhost:3306/epms_dev"/>
+      <property name="javax.persistence.jdbc.password" value="root"/>
+      <property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver"/>
+      <property name="javax.persistence.jdbc.user" value="root"/>
+      
+<!--       <property name="javax.persistence.jdbc.driver" value="com.mysql.jdbc.Driver" /> -->
+<!-- 	  <property name="javax.persistence.jdbc.url" value="jdbc:mysql://41.185.31.71:3306/epms_dev" /> -->
+<!-- 	  <property name="javax.persistence.jdbc.user" value="root" /> -->
+<!-- 	  <property name="javax.persistence.jdbc.password" value="Qwtydfhj85" /> -->
+		
+    </properties>
+    
+  </persistence-unit>
+</persistence>

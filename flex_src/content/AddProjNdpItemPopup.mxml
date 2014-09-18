@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow  xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%"
+				creationComplete="init()" title="Add Project Ndp Item"
+				close="cancel()">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		
+	</fx:Declarations>
+	
+	<fx:Style source="style/epms.css"/>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.helper.Status;
+			import co.za.ngwane.epms.repository.Ndp;
+			import co.za.ngwane.epms.repository.Progndplink;
+			import co.za.ngwane.epms.repository.Progtbl;
+			import co.za.ngwane.epms.repository.Projndplinkitems;
+			import co.za.ngwane.epms.repository.Projtbl;
+			import co.za.ngwane.epms.repository.Userepms;
+			
+			import flashx.textLayout.formats.Float;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.controls.Text;
+			import mx.core.FlexGlobals;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			import spark.events.IndexChangeEvent;
+			
+			public function init() : void
+			{
+				PopUpManager.centerPopUp(this);
+			}
+			
+			public function cancel() : void
+			{
+				PopUpManager.removePopUp(this);
+			}
+			
+			public function seacrh():void
+			{
+				
+			}
+			
+			public var errorMSG:String = new String();
+			public function isValid():Boolean
+			{
+				if(EPMSSingleton.getInstance().selectedNpdItemList.length == 0)
+				{
+					errorMSG += "Please Select Atleast One Item.\n";
+				}
+				if(errorMSG.length > 3) 
+				{
+					return false;
+				}
+				else
+				{
+					return true;
+				}
+			}
+			
+			public var selectedProj : String = "";
+			public function getSelectedProj(event:IndexChangeEvent):void
+			{
+				selectedProj = projInput.selectedItem;
+				
+				getProjByName(selectedProj); // get the Project Obj
+				
+			}
+			
+			
+			public function getProjByName (selectedProj : String)
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				remoteObject.destination = "projectOperations"; 
+				remoteObject.addEventListener(FaultEvent.FAULT, getProjByNameFaultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT, getProjByNameResultHandler);
+				remoteObject.retrieveByName(selectedProj);
+				cursorManager.setBusyCursor();
+			}
+			
+			public static function getProjByNameFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to load ndp link items please contact your administrator if this continues.","Failure", 4, null, null, Helper.noEntryImg);
+			}
+			
+			public var project : Projtbl = new Projtbl;
+			public function getProjByNameResultHandler(event:ResultEvent):void
+			{
+				//Alert.show("getAllOutcomeResultHandler event.result: \n"+event.result);
+				project = (event.result as Projtbl);
+				EPMSSingleton.getInstance().selectedProj = project;
+				
+				cursorManager.removeBusyCursor();
+				
+				getNdpByProg(EPMSSingleton.getInstance().selectedProj.progtblid); // Get the ndps by prog as to populate ndp drop down
+			}
+			
+			public function getNdpByProg (program : Progtbl)
+			{
+				//Alert.show("EPMSSingleton.getInstance().selectedProj.progtblid is : "+EPMSSingleton.getInstance().selectedProj.progtblid+"\n"+ "selectedProj is : "+selectedProj);
+				
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				remoteObject.destination = "progNdpLinkOperations"; 
+				remoteObject.addEventListener(FaultEvent.FAULT, getNdpByProgFaultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT, getNdpByProgResultHandler);
+				remoteObject.getNdpByProg(program);
+				cursorManager.setBusyCursor();
+			}
+			
+			public static function getNdpByProgFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to load ndp link items please contact your administrator if this continues.","Failure", 4, null, null, Helper.noEntryImg);
+			}
+			
+			public var progNdpLinkList : ArrayCollection = EPMSSingleton.getInstance().progNdpLinkList;
+			public function getNdpByProgResultHandler(event:ResultEvent) : void
+			{
+				//Alert.show("getNdpByProgResultHandler event.result: \n"+event.result);
+				
+				progNdpLinkList = (event.result as ArrayCollection);
+				EPMSSingleton.getInstance().progNdpLinkList = progNdpLinkList;
+				
+				for each (var ndpLink : co.za.ngwane.epms.repository.Progndplink in EPMSSingleton.getInstance().progNdpLinkList )
+				{
+					
+					ndpLink.progName = ndpLink.progid.name;
+					ndpLink.ndpName = ndpLink.ndpid.name;
+					
+					EPMSSingleton.getInstance().progNdpLinkBeanList.addItem(ndpLink);
+					//Alert.show("ndp.ndpltemsCollection.length is : "+ndpLink.ndpltemsCollection.length); 
+				}
+				
+				cursorManager.removeBusyCursor();
+			}
+			
+			public var selectedNdp : co.za.ngwane.epms.repository.Progndplink = new co.za.ngwane.epms.repository.Progndplink;
+			public function getSelectedNdp(event:IndexChangeEvent) : void
+			{
+				selectedNdp = ndpInput.selectedItem;
+				
+				getNdpItemsByNdp(selectedNdp.ndpid) //get all ndp link items for the selected ndp link
+			}
+			
+			public function getNdpItemsByNdp (ndp : co.za.ngwane.epms.repository.Ndp)
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				remoteObject.destination = "ndpItemsOperations"; 
+				remoteObject.addEventListener(FaultEvent.FAULT, getNdpItemsByNdpFaultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT, getNdpItemsByNdpResultHandler);
+				remoteObject.getByNdp(ndp);
+				
+				//cursorManager.setBusyCursor();
+			}
+			
+			public static function getNdpItemsByNdpFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to load ndp link items please contact your administrator if this continues.","Failure", 4, null, null, Helper.noEntryImg);
+			}
+			
+			public var addProProjNdpItemsList : ArrayCollection = EPMSSingleton.getInstance().addProProjNdpItemsList;
+			public function getNdpItemsByNdpResultHandler(event:ResultEvent):void
+			{
+				//Alert.show("getAllOutcomeResultHandler event.result: \n"+event.result);
+				addProProjNdpItemsList = (event.result as ArrayCollection);
+				EPMSSingleton.getInstance().addProProjNdpItemsList = addProProjNdpItemsList;
+				ndpLinkItemListDG.dataProvider = EPMSSingleton.getInstance().addProProjNdpItemsList;
+				
+				for each (var ndp : co.za.ngwane.epms.repository.Ndp in EPMSSingleton.getInstance().addProProjNdpItemsList )
+				{
+					EPMSSingleton.getInstance().ndpNameList.addItem(ndp.name);
+				}
+				
+				//cursorManager.removeBusyCursor();
+			}
+			
+			public function doSubmitProjNdpItems():void
+			{
+				if(isValid()) 
+				{
+					var projNdpItem : co.za.ngwane.epms.repository.Projndplinkitems = new co.za.ngwane.epms.repository.Projndplinkitems();
+					var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+					
+					remoteObject.destination = "projNdpLinkItemsOperations"; 
+					remoteObject.addProjectNdpItems(EPMSSingleton.getInstance().selectedProj, EPMSSingleton.getInstance().selectedNpdItemList);
+					remoteObject.addEventListener(FaultEvent.FAULT, addDirFaultHandler);
+					remoteObject.addEventListener(ResultEvent.RESULT, addDirResultHandler);
+					cursorManager.setBusyCursor();
+				}
+				else
+				{
+					Alert.show(errorMSG,"Validation Failure", 4, null, null,Helper.noEntryImg);
+					errorMSG = "";
+				}
+			}
+			
+			public function addDirResultHandler(event:ResultEvent):void
+			{
+				var result : Boolean = event.result as Boolean;
+				if(result == true)
+				{	
+					Alert.show("Project Ndp Item added successfully.","Successful", 4, null, null, Helper.accept);
+					cancel();
+					clearForm();
+					//FlexGlobals.topLevelApplication.usersContent.userssVS.getAllUsers();
+					
+					EPMSSingleton.getInstance().selectedNpdItemList = new ArrayCollection;
+				}
+				else
+				{
+					Alert.show("Failed to add Project Ndp Item.","Error", 4, null, null, Helper.noEntryImg);
+				}
+				cursorManager.removeBusyCursor();
+			}
+			
+			var dotSeparator : String = ".";
+			
+			public function clearForm() : void
+			{
+			}
+			
+			public static function addDirFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to add Project Ndp Item.","Failure", 4, null, null, Helper.noEntryImg);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<mx:HBox width="100%" height="100%">
+		<mx:Canvas  width="30%" height="100%"/>
+		
+		<mx:Form width="100%" height="100%">
+			<mx:Spacer/>
+			<s:Label text="Enter Programs Ndp Link's Info " fontWeight="bold" textAlign="center"/>
+			<mx:FormItem label="Project:">
+				<s:DropDownList id="projInput" width="220" dataProvider="{EPMSSingleton.getInstance().projectNameList}" prompt="Select Project"
+								change="getSelectedProj(event)"/>
+				<!--<s:TextInput id="projName" width="220" text="{EPMSSingleton.getInstance().selectedProj.name}"
+							 editable="false"/>-->
+			</mx:FormItem>
+			
+			<mx:FormItem label="Program:">
+				<s:TextInput id="progName" width="220" text="{EPMSSingleton.getInstance().selectedProj.progtblid.name}"
+							 editable="false"/>
+			</mx:FormItem>
+			
+			<mx:FormItem label="NDP:">
+				<s:DropDownList id="ndpInput" width="220" dataProvider="{EPMSSingleton.getInstance().progNdpLinkBeanList}" prompt="Select NDP"
+				change="getSelectedNdp(event)"
+				labelField="ndpName"/>
+			</mx:FormItem>
+			
+			<mx:FormItem label="NDP Items:">
+				<mx:DataGrid id="ndpLinkItemListDG" height="100%" width="723" dataProvider="{EPMSSingleton.getInstance().addProProjNdpItemsList}" >
+					<mx:columns>
+						<mx:DataGridColumn headerText="Name" dataField="name" />
+						<mx:DataGridColumn headerText="NDP Link" dataField="name" />
+						<mx:DataGridColumn headerText="Description" dataField="description" id="programDC"/>
+						<mx:DataGridColumn itemRenderer="content.AddProjNdpitemItemRender" visible="true" headerText=""/>
+					</mx:columns>
+				</mx:DataGrid>
+			</mx:FormItem>
+			
+			<mx:HBox width="100%" horizontalAlign="center">
+				<mx:Canvas id="submitBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="doSubmitProjNdpItems()">
+					<mx:Image source="@Embed('images/BtnSubmit.png')"/>
+				</mx:Canvas>
+				<mx:Canvas id="refreshBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="cancel()">
+					<mx:Image source="@Embed('images/BtnCancel.png')"/>
+				</mx:Canvas>
+			</mx:HBox>
+		</mx:Form>
+		
+		<mx:Canvas  width="10%" height="100%"/>
+	</mx:HBox>
+	
+</s:TitleWindow >

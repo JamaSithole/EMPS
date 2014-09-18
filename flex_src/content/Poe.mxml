@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox verticalGap="0" color="#004B36" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" xmlns:utils="utils.*"
+		 show="initShow()" xmlns:content="content.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.helper.Status;
+			import co.za.ngwane.epms.repository.Outcometbl;
+			import co.za.ngwane.epms.repository.Outputtbl;
+			import co.za.ngwane.epms.repository.Qoupd;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.core.IFlexDisplayObject;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			import spark.events.IndexChangeEvent;
+			
+			[Bindable]
+			public var projObj : Object;
+			
+			public function initShow() : void
+			{
+				if(EPMSSingleton.getInstance().selectedOutputPoe != null)
+				{
+					getQoupByOutput(EPMSSingleton.getInstance().selectedOutputPoe);
+				}
+				else
+				{
+					Alert.show("Please select an output in output tab.","No Output Selected", 4, null, null, Helper.noEntryImg);
+					(this.parent as ViewStack).selectedChild = FlexGlobals.topLevelApplication.sectionContent.outputVS;
+				}
+			}
+			
+			public function setWidth() : void 
+			{
+				
+			}
+			
+			public function clearInnerText():void
+			{
+				
+			}
+			
+			public var loadPopUp:IFlexDisplayObject; 
+			//public var myPopUp:AddUser; 
+			
+			public function refresh() : void 
+			{
+				//getAllUsers();
+			}
+			
+			/*
+			public var selectedProj : String = "";
+			public function getSelectedProj(event:IndexChangeEvent):void
+			{
+				selectedProj = projInput.selectedItem;
+				getQoupByOutput(selectedProj);
+			}
+			*/
+			
+			public function getQoupByOutput (selectedOutputPoe : Outputtbl)
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				remoteObject.destination = "outputOperations";
+				remoteObject.addEventListener(FaultEvent.FAULT, getQoupByOutputFaultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT, getQoupByOutputResultHandler);
+				remoteObject.getQoupByOutput(selectedOutputPoe);
+				cursorManager.setBusyCursor();
+			}
+			
+			public static function getQoupByOutputFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to load output please contact your administrator if this continues.","Failure", 4, null, null, Helper.noEntryImg);
+			}
+			
+			public var outputListPoe : ArrayCollection = EPMSSingleton.getInstance().outputListPoe;
+			
+			public function getQoupByOutputResultHandler(event:ResultEvent):void
+			{
+				//Alert.show("getAllOutcomeResultHandler event.result: \n"+event.result);
+				EPMSSingleton.getInstance().outputListPoe4mated = new ArrayCollection;
+				
+				outputListPoe = (event.result as ArrayCollection);
+				EPMSSingleton.getInstance().outputListPoe = outputListPoe;
+				
+				for each (var qoup : Qoupd in EPMSSingleton.getInstance().outputListPoe)
+				{
+					if(qoup.outputtblid.currq == EPMSSingleton.getInstance().Q1)
+					{
+						qoup.target = qoup.outputtblid.q1;
+						qoup.actual = qoup.outputtblid.q1a;
+					}
+					else if(qoup.outputtblid.currq == EPMSSingleton.getInstance().Q2)
+					{
+						qoup.target = qoup.outputtblid.q2;
+						qoup.actual = qoup.outputtblid.q2a;
+					}
+					else if(qoup.outputtblid.currq == EPMSSingleton.getInstance().Q3)
+					{
+						qoup.target = qoup.outputtblid.q3;
+						qoup.actual = qoup.outputtblid.q3a;
+					}
+					else if(qoup.outputtblid.currq == EPMSSingleton.getInstance().Q4)
+					{
+						qoup.target = qoup.outputtblid.q4;
+						qoup.actual = qoup.outputtblid.q4a;
+					}
+					
+					if(qoup.target > 0)
+					{
+						qoup.targetClient = qoup.target.toFixed(2) + "%"; 
+					}
+					else
+					{
+						qoup.targetClient = qoup.target + "%"; 
+					}
+					
+					if(qoup.actual > 0)
+					{
+						qoup.actualClient = qoup.actual.toFixed(2) + "%"; 
+					}
+					else
+					{
+						qoup.actualClient = qoup.actual + "%"; 
+					}
+					
+					if(qoup.budspend > 0)
+					{
+						qoup.budspendClient = Helper.ZAR + qoup.budspend.toFixed(2) ; 
+					}
+					else
+					{
+						qoup.budspendClient = Helper.ZAR + qoup.budspend; 
+					}
+					
+					EPMSSingleton.getInstance().outputListPoe4mated.addItem(qoup);
+				}
+				
+				poeListDG.dataProvider = EPMSSingleton.getInstance().outputListPoe4mated;
+				
+				cursorManager.removeBusyCursor();
+				setWidth();
+			}
+			
+			public function seachPoeByOutRefNo() : void
+			{
+			
+			}
+			
+		]]>
+	</fx:Script>
+	<mx:VBox verticalGap="0" width="100%" height="100%" paddingLeft="5" paddingBottom="5" paddingRight="5" paddingTop="5">
+		
+		<mx:Canvas x="80" y="49" width="100%" height="45" borderVisible="false">
+			<s:HGroup width="100%">
+				<!--
+				<s:DropDownList id="projInput" width="220" dataProvider="{EPMSSingleton.getInstance().projectNameList}" prompt="Select Output" change="getSelectedProj(event)"
+								labelField="name"/>
+				<mx:Spacer/><mx:Spacer/>
+				-->
+				<s:TextInput width="168" prompt="enter output ref no" change="seachPoeByOutRefNo()"/>
+				
+				<!--<mx:Canvas id="refreshBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="refresh()">
+				<mx:Image source="@Embed('images/BtnRefresh.png')"/>
+				</mx:Canvas>-->
+			</s:HGroup>
+		</mx:Canvas>
+		
+		<mx:Spacer/>
+		
+		<s:HGroup width="100%" paddingBottom="5">
+			<s:Label height="25" fontWeight="bold" paddingBottom="5" paddingLeft="0" paddingRight="5"
+					 paddingTop="5" text="Search returned {EPMSSingleton.getInstance().outputListPoe.length} result(s)"/>
+			<mx:Canvas width="80%" borderVisible="false"/>
+			<s:Label text="Portfolio Of Evindence" paddingTop="5" fontWeight="bold" fontSize="16"/>
+			<mx:Canvas width="80%" borderVisible="false"/>
+		</s:HGroup>
+		
+		<mx:DataGrid id="poeListDG" height="100%" width="100%"
+					 dataProvider="{EPMSSingleton.getInstance().outputListPoe4mated}">
+			<mx:columns>
+				<mx:DataGridColumn headerText="OUTPUT REF" dataField="outputtblid.refno" id="nameDC"/>
+				<mx:DataGridColumn headerText="INDICATOR" dataField="outputtblid.indicator" id="roleDC" />
+				<mx:DataGridColumn headerText="QUATOR" dataField="quo" id="quoDC" />
+				<mx:DataGridColumn headerText="PROJECT" dataField="outputtblid.outcometblid.projtblid.name" id="programDC"/>
+				<mx:DataGridColumn headerText="OUTCOME" dataField="outputtblid.outcometblid.name" id="outcomeDC"/>
+				<mx:DataGridColumn headerText="TARGET" dataField="targetClient" id="targetDC"/>
+				<mx:DataGridColumn headerText="ACTUAL" dataField="actualClient" id="actualDC"/>
+				<mx:DataGridColumn headerText="BUDGET SPEND" dataField="budspendClient" id="budspendClientDC"/>
+				<mx:DataGridColumn itemRenderer="content.PoeItemRender" visible="true" headerText=""/>
+			</mx:columns>
+
+		</mx:DataGrid>
+	</mx:VBox>
+	
+</mx:VBox>
+

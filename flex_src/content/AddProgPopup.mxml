@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow  xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%"
+			   creationComplete="init()" title="Add Program"
+			   close="cancel()">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		
+	</fx:Declarations>
+	
+	<fx:Style source="style/epms.css"/>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.repository.Progtbl; EPMSSingleton
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.helper.Status;
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.repository.Userepms;
+			
+			import flashx.textLayout.formats.Float;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.controls.Text;
+			import mx.core.FlexGlobals;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			import spark.events.IndexChangeEvent;
+			
+			public function init() : void
+			{
+				PopUpManager.centerPopUp(this);
+			}
+			
+			public function cancel() : void
+			{
+				PopUpManager.removePopUp(this);
+			}
+			
+			public function seacrh():void
+			{
+				
+			}
+			
+			public var errorMSG:String = new String();
+			public function isValid():Boolean
+			{
+				if(nameInput.text == "")
+				{
+					errorMSG += "Please Enter Name.\n";
+				}
+				if(selectedSection == "")
+				{
+					errorMSG += "Please Select Section.\n";
+				}
+				if(allocatedBudget.text == "" || !Helper.isNumeric(allocatedBudget.text)){
+					errorMSG += "Budget Allocated Must Be Numeric.\n";
+				}
+				if(errorMSG.length > 3) 
+				{
+					return false;
+				}
+				else
+				{
+					return true;
+				}
+			}
+			
+			public var selectedSection : String = "";
+			public function getSelectedSection(event:IndexChangeEvent):void
+			{
+				selectedSection = sectionInput.selectedItem;
+			}
+			
+			public function doSubmitProg():void
+			{
+				if(isValid()) 
+				{
+					var prog : co.za.ngwane.epms.repository.Progtbl = new co.za.ngwane.epms.repository.Progtbl();
+					var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+					
+					prog.name = nameInput.text;
+					prog.totalbudget = parseFloat(allocatedBudget.text); 
+					prog.avbalance = parseFloat(allocatedBudget.text); 
+					prog.description = descInput.text;
+					
+					remoteObject.destination = "programOperations";
+					remoteObject.createProgram(prog, selectedSection,selectedOwner)
+					remoteObject.addEventListener(FaultEvent.FAULT, addProgFaultHandler);
+					remoteObject.addEventListener(ResultEvent.RESULT, addProgResultHandler);
+					cursorManager.setBusyCursor();
+				}
+				else
+				{
+					Alert.show(errorMSG,"Validation Failure", 4, null, null, Helper.noEntryImg);
+					errorMSG = "";
+				}
+			}
+			
+			public function addProgResultHandler(event:ResultEvent):void
+			{
+				var result : Progtbl = event.result as Progtbl;
+				if(result.id > 0)
+				{	
+					Alert.show("Program added successfully.","Successful", 4, null, null, Helper.accept);
+					//EPMSSingleton.getInstance().progList.addItem(result);
+					cancel();
+					
+					clearForm();
+					FlexGlobals.topLevelApplication.sectionContent.programVS.getAllProg();
+				}
+				else
+				{
+					Alert.show("Failed to add program.","Error", 4, null, null, Helper.noEntryImg);
+				}
+				cursorManager.removeBusyCursor();
+			}
+			
+			var dotSeparator : String = ".";
+			
+			public function clearForm() : void
+			{
+				nameInput.text = "";
+			}
+			
+			public static function addProgFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to add program.","Failure", 4, null, null, Helper.noEntryImg);
+			}
+			public var selectedOwner : String = "";
+			public function getSelectedOwner(event:IndexChangeEvent) : void
+			{
+				selectedOwner = ownerInput.selectedItem;
+			}
+
+		]]>
+	</fx:Script>
+	
+	<mx:HBox width="100%" height="100%">
+		<mx:Canvas  width="30%" height="100%"/>
+		
+		<mx:Form width="60%" height="100%">
+			<mx:Spacer/>
+			<s:Label text="Enter Program's Info " fontWeight="bold" textAlign="center"/>
+			<mx:FormItem label="Name:" >
+				<s:TextInput id="nameInput" width="220"/>
+			</mx:FormItem>
+			<mx:FormItem label="Description">
+				<s:TextInput id="descInput" width="220" height="61"/>
+			</mx:FormItem>
+			<mx:FormItem label="Owner:">
+				<s:DropDownList id="ownerInput" width="160" dataProvider="{EPMSSingleton.getInstance().usersNameList}" prompt="Select Owner"
+								change="getSelectedOwner(event)"/>
+			</mx:FormItem>
+			<mx:FormItem label="Section:">
+				<s:DropDownList id="sectionInput" width="220" dataProvider="{EPMSSingleton.getInstance().sectionNameList}" prompt="Select Section"
+								change="getSelectedSection(event)"/>
+			</mx:FormItem>
+			
+			<mx:FormItem label="Budget Allocated">
+				<s:TextInput id="allocatedBudget" width="160" />
+			</mx:FormItem>
+
+			<mx:HBox width="50%" horizontalAlign="center" paddingLeft="70">
+				<mx:Canvas id="submitBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="doSubmitProg()">
+					<mx:Image source="@Embed('images/BtnSubmit.png')"/>
+				</mx:Canvas>
+				<mx:Canvas id="refreshBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="cancel()">
+					<mx:Image source="@Embed('images/BtnCancel.png')"/>
+				</mx:Canvas>
+			</mx:HBox>
+		</mx:Form>
+		
+		<mx:Canvas  width="10%" height="100%"/>
+	</mx:HBox>
+	
+</s:TitleWindow >

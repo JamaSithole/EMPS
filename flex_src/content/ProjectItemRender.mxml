@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:MXDataGridItemRenderer xmlns:fx="http://ns.adobe.com/mxml/2009" 
+						  xmlns:s="library://ns.adobe.com/flex/spark" 
+						  xmlns:mx="library://ns.adobe.com/flex/mx" 
+						  focusEnabled="true" creationComplete="init()" show="init()">
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.repository.Projtbl;
+			import co.za.ngwane.epms.repository.Userepms;
+			
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.core.IFlexDisplayObject;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			
+			public function init() : void
+			{
+				if(EPMSSingleton.getInstance().projView)
+				{
+					projView.text = EPMSSingleton.getInstance().view;
+				}
+				if(EPMSSingleton.getInstance().projUpdate)
+				{
+					projEdit.text = EPMSSingleton.getInstance().edit;
+				}
+				if(EPMSSingleton.getInstance().projDelete)
+				{
+					projDelete.text = EPMSSingleton.getInstance().deleteOrRemove;
+				}
+			}
+			
+			override protected function updateDisplayList(unscaledWidth:Number,unscaledHeight:Number):void{
+				super.updateDisplayList(unscaledWidth,unscaledHeight);
+				if(data == null)return;
+			}
+			
+			public function viewSelectedProj() : void 
+			{
+				underConstruction();
+			}
+			
+			public function editSelectedProj() : void
+			{
+				underConstruction();
+			}
+			
+			public function delSelectedProj() : void
+			{
+				var proj : Projtbl = data as Projtbl;
+				EPMSSingleton.getInstance().selectedProj = proj;
+				Alert.yesLabel = "Yes";
+				Alert.noLabel = "No";
+				Alert.show("Are you sure you want to delete this proj?", "Project Delete ", 3, null, deleteProjClickHandler);
+				
+			}
+			
+			public function deleteProjClickHandler(event:CloseEvent) : void 
+			{
+				underConstruction();
+			}
+			
+			//Show Under Construction Alert for Incomplete Functionality
+			public function underConstruction():void
+			{
+				Alert.show("Functionality Not Available Yet!!!", "Under Construction", 4, null, null, Helper.noEntryImg);
+			}
+			
+		]]>
+	</fx:Script>
+	<mx:Canvas horizontalScrollPolicy="off" width="100%" height="100%">
+		<mx:HBox height="100%" horizontalCenter="0" verticalCenter="0" horizontalScrollPolicy="off" >
+			
+			<mx:HBox click="viewSelectedProj()" horizontalGap="5" useHandCursor="true" buttonMode="true" mouseChildren="false"
+					 includeInLayout="{EPMSSingleton.getInstance().projView}">
+				<mx:Image source="{Helper.viewIcon}" includeInLayout="{EPMSSingleton.getInstance().projView}"/>
+				<mx:Text height="100%" id="projView" includeInLayout="{EPMSSingleton.getInstance().projView}"/>
+			</mx:HBox>
+			
+			<mx:HBox click="editSelectedProj()" horizontalGap="5" useHandCursor="true" buttonMode="true" mouseChildren="false"
+					 includeInLayout="{EPMSSingleton.getInstance().projUpdate}">
+				<mx:Image source="{Helper.editIcon}" includeInLayout="{EPMSSingleton.getInstance().projUpdate}"/>
+				<mx:Text height="100%" id="projEdit" includeInLayout="{EPMSSingleton.getInstance().projUpdate}" />
+			</mx:HBox>
+			
+			<mx:HBox click="delSelectedProj()" horizontalGap="5" useHandCursor="true" buttonMode="true" mouseChildren="false"
+					 includeInLayout="{EPMSSingleton.getInstance().projDelete}"> 
+				<mx:Image source="{Helper.deleteIcon}" includeInLayout="{EPMSSingleton.getInstance().projDelete}"/>
+				<mx:Text id="projDelete" height="100%" includeInLayout="{EPMSSingleton.getInstance().projDelete}"/>
+			</mx:HBox>	
+			
+		</mx:HBox>
+	</mx:Canvas>	
+</s:MXDataGridItemRenderer>

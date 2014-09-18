@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow  xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%"
+				creationComplete="init()" title="Add/Update Actuals"
+				close="cancel()">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		
+	</fx:Declarations>
+	
+	<fx:Style source="style/epms.css"/>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.repository.Outcometbl;
+			import co.za.ngwane.epms.repository.Outputtbl;
+			import co.za.ngwane.epms.repository.Qoupd;
+			
+			import flashx.textLayout.factory.TruncationOptions; EPMSSingleton
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.helper.Status;
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.repository.Userepms;
+			
+			import flashx.textLayout.formats.Float;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.controls.Text;
+			import mx.core.FlexGlobals;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			import spark.events.IndexChangeEvent;
+			
+			private function init() : void
+			{
+				PopUpManager.centerPopUp(this);
+			}
+			
+			private function cancel() : void
+			{
+				PopUpManager.removePopUp(this);
+			}
+			
+			private function seacrh():void
+			{
+				
+			}
+			
+			public var errorMSG:String = new String();
+			private function isValid():Boolean
+			{
+				
+				if(qaInput.text == "" || !Helper.isNumeric(qaInput.text)){
+					errorMSG += "Please Enter Numeric Value.\n";
+				}
+				
+				if(totBudSpendInput.text== "" || !Helper.isNumeric(totBudSpendInput.text)){
+					errorMSG += "Please Enter Numeric Value.\n";
+				}
+				
+				if(errorMSG.length > 3) 
+				{
+					return false;
+				}
+				else
+				{
+					return true;
+				}
+			}
+			
+			
+			public function doUpdateOutcome():void
+			{
+				if(isValid()) 
+				{
+					var qoupd : co.za.ngwane.epms.repository.Qoupd = new co.za.ngwane.epms.repository.Qoupd();
+					var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+					
+					//EPMSSingleton.getInstance().selectedQoup.qscore = parseFloat(totBudSpendInput.text);
+					EPMSSingleton.getInstance().selectedQoup.qscore = parseFloat(qaInput.text);
+					EPMSSingleton.getInstance().selectedQoup.comment = qaComments.text;
+					
+					remoteObject.destination = "outputUpdateOperations";  
+					remoteObject.updateQoupd(EPMSSingleton.getInstance().selectedQoup); 
+					remoteObject.addEventListener(FaultEvent.FAULT, addOutFaultHandler);
+					remoteObject.addEventListener(ResultEvent.RESULT, addOutResultHandler);
+					cursorManager.setBusyCursor();
+				}
+				else
+				{
+					Alert.show(errorMSG,"Please enter valid data", 4, null, null, Helper.noEntryImg);
+					errorMSG = "";
+				}
+			}
+			
+			public function addOutResultHandler(event:ResultEvent):void
+			{
+				var result : Boolean = event.result as Boolean;
+				if( result == true )
+				{	
+					Alert.show("Actual updated successfully.","Successful", 4, null, null, Helper.accept);
+					cancel();
+					clearForm();
+					
+					EPMSSingleton.getInstance().selectedQoup = new Qoupd();
+					FlexGlobals.topLevelApplication.rejectedDataSignOffContent.rejectedDataSignOffVS.init();
+
+				}
+				else
+				{
+					Alert.show("Failed to updated actual.","Error", 4, null, null,Helper.noEntryImg);
+				}
+				cursorManager.removeBusyCursor();
+			}
+			
+			var dotSeparator : String = ".";
+			
+			public function clearForm() : void
+			{
+				
+			}
+			
+			public static function addOutFaultHandler(event:FaultEvent):void 
+			{
+				Alert.show("Failed to update actual.","Failure", 4, null, null,Helper.noEntryImg);
+			}
+						
+			
+		]]>
+	</fx:Script>
+	
+	<mx:HBox width="100%" height="100%">
+		
+		<mx:Form width="100%" height="100%">	
+			<mx:Spacer/>
+			<s:Label text="Update Actuals " fontWeight="bold" textAlign="center"/>
+			<mx:FormItem label="Reference No:">
+				<s:TextInput id="refInput" width="220" text="{EPMSSingleton.getInstance().selectedQoup.outputtblid.refno}"/>
+			</mx:FormItem>
+			<mx:FormItem label="Indicator:">
+				<s:TextInput id="indicator" width="220" text="{EPMSSingleton.getInstance().selectedQoup.outputtblid.indicator}"/>
+			</mx:FormItem>
+			<mx:FormItem label="Budget Spend:">
+				<s:TextInput id="totBudSpendInput" width="220"/>
+			</mx:FormItem>
+			<mx:FormItem label="Reasons For Rejection:">
+				<s:TextInput id="rejReason"  width="220" text="{EPMSSingleton.getInstance().selectedQoup.comment}"/>
+			</mx:FormItem>
+			
+			<s:Label text="Enter Quaterly Actuals " fontWeight="bold" textAlign="center"/>
+			<mx:FormItem label="Target" id="quatorLbl0">
+				<s:TextInput id="targetInput" width="220" enabled="false" editable="false" text="{EPMSSingleton.getInstance().selectedQoup.currentqTarget}"/>
+			</mx:FormItem>
+			<mx:FormItem label="Actual" id="quatorLbl">
+				<s:TextInput id="qaInput" width="220" text="{EPMSSingleton.getInstance().selectedQoup.qscore}"/>
+			</mx:FormItem>
+			
+			<mx:FormItem label="Comments:">
+				<s:TextInput id="qaComments"  width="220"/>
+			</mx:FormItem>
+
+					
+			<mx:HBox width="100%" horizontalAlign="center" paddingLeft="0">
+				<mx:Canvas id="submitBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="doUpdateOutcome()">
+					<mx:Image source="@Embed('images/BtnSubmit.png')"/>
+				</mx:Canvas>
+				<mx:Canvas id="refreshBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="cancel()">
+					<mx:Image source="@Embed('images/BtnCancel.png')"/>
+				</mx:Canvas>
+			</mx:HBox>
+		</mx:Form>
+		
+	</mx:HBox>
+	
+</s:TitleWindow >

@@ -1,0 +1,387 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow  xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%"
+			   creationComplete="init()" title="Add User"
+			   close="cancel()">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<mx:EmailValidator source="{emailInput}" property="text"/>
+	</fx:Declarations>
+	
+	<fx:Style source="style/epms.css"/>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton; EPMSSingleton
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.helper.Status;
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.repository.Userepms;
+			
+			import flashx.textLayout.formats.Float;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.controls.Text;
+			import mx.core.FlexGlobals;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			import spark.events.IndexChangeEvent;
+			
+			[Bindable]
+			public var genderObj : Object;
+			
+			public function init() : void
+			{
+				PopUpManager.centerPopUp(this);
+			}
+			
+			public function cancel() : void
+			{
+				PopUpManager.removePopUp(this);
+			}
+			
+			public function seacrh():void
+			{
+				
+			}
+			
+			public var errorMSG:String = new String();
+			public function isValid():Boolean
+			{
+				if(selectedTitle == "")
+				{
+					errorMSG += "Please Select Title.\n";
+				}
+				if(nameInput.text == "")
+				{
+					errorMSG += "Please Enter Name.\n";
+				}
+				if(middleNamenput.text == "")
+				{
+					errorMSG += "Please Enter Middle Name.\n";
+				}
+				if(surnameInput.text == "")
+				{
+					errorMSG += "Please Enter Surname.\n";
+				}
+				 /* if(selectedIdType != 0 || selectedIdType != 1)
+				{
+					errorMSG += "Please Select ID Type.\n";
+				}  */
+				if(userNameInput.text == ".")
+				{
+					errorMSG += "Please Enter Username.\n";
+				}
+				if(occupationInput.text == "")
+				{
+					errorMSG += "Please Enter Occupation.\n";
+				}
+				if(selectedEmploymentType == "")
+				{
+					errorMSG += "Please Select Employment Type.\n";
+				}
+				if(employeeNoInput.text == "")
+				{
+					errorMSG += "Please Enter Employee No.\n";
+				}
+				if(selectedGender == "")
+				{
+					errorMSG += "Please Select Gender.\n";
+				}
+				if(emailInput.text == "")
+				{
+					errorMSG += "Please Enter Email.\n";
+				}
+				if(idNumberInput.text == "")
+				{
+					errorMSG += "Please Enter ID Number.\n";
+				}
+				if(!isValidId)
+				{
+					errorMSG += "Please Enter Valid RSA ID Number.\n";
+				}
+				
+				if(errorMSG.length > 3) 
+				{
+					return false;
+				}
+				else
+				{
+					return true;
+				}
+			}
+			
+			public var isValidId : Boolean = true;
+			private function doCheckIdNumber() : void
+			{
+				var idNumber : String = idNumberInput.text;
+				if( idNumber.length >= 13 && selectedIdType == 0 )
+				{
+					if( Helper.validateIDNumber(idNumberInput.text) == false )
+					{
+						Alert.show( "The entered ID Number is not a valid South African ID.","Invalid ID Number", 4, null, null, Helper.noEntryImg );
+						isValidId = false;
+					}
+					else
+					{
+						isValidId = true;
+					}
+				}
+			}
+			
+			public var selectedDept : String = "";
+			public function getSelectedDept(event:IndexChangeEvent) : void
+			{
+				selectedDept = deptInput.selectedItem;
+			}
+			
+			public var selectedTitle : String = "";
+			public function getSelectedTitle(event:IndexChangeEvent):void
+			{
+				selectedTitle = titleInput.selectedItem.label;
+			}
+			
+			public var selectedIdType : Number = 0;
+			public function getSelectedIdType(event:IndexChangeEvent):void
+			{
+				selectedIdType = parseInt(idTypeInput.selectedItem.data);
+			}
+			
+			public var selectedEmploymentType : String = "";
+			public function getSelectedEmploymentType(event:IndexChangeEvent):void
+			{
+				selectedEmploymentType = employmentTypeInput.selectedItem;
+			}
+			
+			public var selectedGender : String = "";
+			public function getSelectedGender(event:IndexChangeEvent):void
+			{
+				selectedGender = genderInput.selectedItem;
+			}
+			
+			public function doSubmitUser():void
+			{
+				if(isValid()) 
+				{
+					var user : co.za.ngwane.epms.repository.Userepms = new co.za.ngwane.epms.repository.Userepms();
+					var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+					
+					user.contactemail = emailInput.text;
+					user.contactnumber = contactNoInput.text
+					user.dob = dobInput.selectedDate;
+					user.idnumber = idNumberInput.text;
+					user.idtype = selectedIdType as Number;
+					user.middlename = middleNamenput.text;
+					user.name = nameInput.text;
+					user.password = Status.PASSWORD;
+					user.roleid = null;
+					user.sublevelid = null;
+					user.surname = surnameInput.text;
+					user.username = userNameInput.text;
+					
+					remoteObject.destination = "userOperations";
+					remoteObject.add(user);
+					remoteObject.addEventListener(FaultEvent.FAULT, faultHandler);
+					remoteObject.addEventListener(ResultEvent.RESULT, addUserResultHandler);
+					cursorManager.setBusyCursor();
+				}
+				else
+				{
+					Alert.show(errorMSG,"Validation Failure", 4, null, null,Helper.noEntryImg);
+					errorMSG = "";
+				}
+			}
+			
+			public function addUserResultHandler(event:ResultEvent):void
+			{
+				var result : Boolean = event.result as Boolean;
+				if(result)
+				{	
+					Alert.show("User added successfully.","Successful", 4, null, null,Helper.accept);
+					cancel();
+					clearForm();
+					
+					FlexGlobals.topLevelApplication.login.getAllUsers();
+				}
+				else
+				{
+					Alert.show("Failed to add user.","Error", 4, null, null,Helper.noEntryImg);
+				}
+				cursorManager.removeBusyCursor();
+			}
+			
+			public function updateUserResultHandler(event:ResultEvent):void
+			{
+				var result = event.result.toString();
+				if(result == "User info updated successfully.")
+				{
+					Alert.show("User ifo updated successfully.","Successful", 4, null, null,Helper.accept);
+					cancel();
+					clearForm();
+				}
+				else
+				{
+					Alert.show("Failed to update user info.","Error", 4, null, null,Helper.noEntryImg);
+				}
+				cursorManager.removeBusyCursor();
+			}
+			
+			public function doDeleteUser():void
+			{
+				Alert.yesLabel = "Yes";
+				Alert.noLabel = "No";
+				Alert.show("Are you sure you want to delete this user?", "User Delete", 3, this, alertClickHandler);
+			}
+			
+			// Event handler function for displaying the selected Alert button.
+			public function alertClickHandler(event:CloseEvent):void 
+			{
+				if (event.detail==Alert.YES)
+				{
+					deleteUser();
+				}
+				else
+				{
+					//Alert.show("You answered No");
+				}
+			}
+			
+			public function deleteUser():void
+			{
+				var user : co.za.ngwane.epms.repository.Userepms = new co.za.ngwane.epms.repository.Userepms();
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				user.id = EPMSSingleton.getInstance().selectedUser.id;
+				remoteObject.destination = "userOperations";
+				remoteObject.deleteUser(user);
+				remoteObject.addEventListener(FaultEvent.FAULT, faultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT, doDeleteUserResultHandler);
+				cursorManager.setBusyCursor();
+			}
+			
+			public function doDeleteUserResultHandler(event:ResultEvent):void
+			{
+				var result = event.result.toString();
+				if(result == "User deleted successfully.")
+				{
+					Alert.show("User deleted successfully.");
+					cancel();
+				}
+				else
+				{
+					Alert.show("Failed to delete user.");
+				}
+				cursorManager.removeBusyCursor();
+			}
+			
+			var dotSeparator : String = ".";
+			
+			public function clearForm():void
+			{
+				nameInput.text = "";
+				middleNamenput.text = "";
+				surnameInput.text = "";
+				employeeNoInput.text = "";
+				genderInput.selectedItem.label = "";
+				emailInput.text = "";
+			}
+			
+			public static function faultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to add user, if this continues please contact your administrator.","Failure", 4, null, null, Helper.noEntryImg);
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<mx:HBox width="100%" height="100%">
+		<mx:Canvas  width="30%" height="100%"/>
+		
+		<mx:Form width="60%" height="100%">
+			<mx:Spacer/>
+			<s:Label text="Enter User's Information " fontWeight="bold" textAlign="center"/>
+			<mx:FormItem label="Title:">
+				<s:DropDownList id="titleInput" width="220" dataProvider="{Helper.titleArray}" prompt="Select Title"
+								change="getSelectedTitle(event)"/>
+			</mx:FormItem>
+			<mx:FormItem label="First Name:" >
+				<s:TextInput id="nameInput" width="220"/>
+			</mx:FormItem>
+			<mx:FormItem label="Middle Name:">
+				<s:TextInput id="middleNamenput" width="220"/>
+			</mx:FormItem>
+			<mx:FormItem label="Surname:">
+				<s:TextInput id="surnameInput" width="220" />
+			</mx:FormItem>
+			
+			<mx:FormItem label="Date Of Birth:">
+				<mx:DateField id="dobInput" width="220" />
+			</mx:FormItem>
+			
+			<mx:FormItem label="ID Type:">
+				<s:DropDownList id="idTypeInput" width="220" dataProvider="{Helper.idTypeArray}" prompt="Select ID Type"
+								change="getSelectedIdType(event)"/>
+			</mx:FormItem>
+			<mx:FormItem label="ID Number:">
+				<s:TextInput id="idNumberInput" width="220"  change="doCheckIdNumber()" prompt="Enter Patient's ID Number" />
+			</mx:FormItem>
+			<mx:FormItem label="Role:">
+				<s:DropDownList id="roleInput" width="220" dataProvider="{EPMSSingleton.getInstance().deptList}" prompt="Select Role"
+								change="getSelectedDept(event)"
+								labelField="name"/>
+			</mx:FormItem>
+			
+			<mx:FormItem label="Department">
+				<s:DropDownList id="deptInput" width="220" dataProvider="{EPMSSingleton.getInstance().deptList}" prompt="Select Department"
+								change="getSelectedDept(event)"
+								labelField="name"/>
+			</mx:FormItem>
+			
+			<mx:FormItem label="Username:">
+				<s:TextInput id="userNameInput" width="220" text="{nameInput.text+dotSeparator+surnameInput.text}"/>
+			</mx:FormItem>
+			
+			<mx:FormItem label="Occupation:">
+				<s:TextInput id="occupationInput" width="220"/>
+			</mx:FormItem>
+			
+			<mx:FormItem label="Employment Type:">
+				<s:DropDownList id="employmentTypeInput" width="220" dataProvider="{Helper.empTypeArray}" prompt="Select Employment Type"
+								change="getSelectedEmploymentType(event)"/>
+			</mx:FormItem>
+			<mx:FormItem label="Employee No.:">
+				<s:TextInput id="employeeNoInput" width="220"/>
+			</mx:FormItem>
+			<mx:FormItem label="Gender:">
+				<s:DropDownList id="genderInput" width="220" dataProvider="{Helper.gender}" prompt="Select Gender"
+								change="getSelectedGender(event)"/>
+			</mx:FormItem>
+			<mx:FormItem label="Email:">
+				<s:TextInput id="emailInput" width="220"/>
+			</mx:FormItem>
+			<mx:FormItem label="Contact No:">
+				<s:TextInput id="contactNoInput" width="220"/>
+			</mx:FormItem>
+			<mx:HBox width="50%" horizontalAlign="center" paddingLeft="70">
+				<mx:Canvas id="submitBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="doSubmitUser()">
+					<mx:Image source="@Embed('images/BtnSubmit.png')"/>
+				</mx:Canvas>
+				<mx:Canvas id="refreshBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="cancel()">
+					<mx:Image source="@Embed('images/BtnCancel.png')"/>
+				</mx:Canvas>
+			</mx:HBox>
+		</mx:Form>
+		
+		<mx:Canvas  width="10%" height="100%"/>
+	</mx:HBox>
+	
+</s:TitleWindow >

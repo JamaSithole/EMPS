@@ -1,0 +1,204 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox verticalGap="0" color="#004B36" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" xmlns:utils="utils.*"
+		 show="init()" xmlns:content="content.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.repository.Clustertbl;
+			import co.za.ngwane.epms.repository.Plantbl;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.core.IFlexDisplayObject;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			import spark.events.IndexChangeEvent;
+			
+			public function init():void
+			{
+				//getAllCluByPlan();
+			}
+			
+			public function setWidth() : void 
+			{
+			}
+			
+			[bindable]
+			public function clustersShow():void
+			{
+				//getAllCluByPlan();
+			}
+			
+			public function search():void
+			{
+				if(searchInput.text != "")
+				{
+					var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+					var searchKey = searchInput.text;
+					remoteObject.destination = "clusterOperations";
+					remoteObject.addEventListener(FaultEvent.FAULT, searchFaultHandler);
+					remoteObject.addEventListener(ResultEvent.RESULT, searchResultHandler);
+					remoteObject.searchCluster(searchKey);
+					cursorManager.setBusyCursor();
+				}
+				else
+				{
+					searchInput.text = "< Enter your search here >";
+					//getAllCluster();
+				}
+			}
+			
+			public function searchResultHandler(event:ResultEvent):void
+			{
+				clusterList = (event.result as ArrayCollection);
+				//Alert.show("Result Search is: "+clientsList.length);
+				if(clusterList.length != 0)
+				{
+					clusterListDG.dataProvider = clusterList;
+				} 
+				else
+				{
+					Alert.show("Cluster info not found.","Error", 4, null, null, Helper.noEntryImg);
+				}
+				cursorManager.removeBusyCursor();
+			}
+			
+			public static function searchFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to search for please contact your administrator if this continues.","Failure", 4, null, null,Helper.noEntryImg);
+			}
+			
+			public function clearInnerText():void
+			{
+				if(searchInput.text == "< Enter your search here >")
+				{
+					searchInput.text = "";
+				}
+			}
+			
+			public var loadPopUp:IFlexDisplayObject; 
+			
+			public var addClusterPopup : AddClusterPopup; 
+			
+			public function addCluster() : void
+			{
+				if(EPMSSingleton.getInstance().clusterAdd)
+				{
+					Helper.editNameWindow=PopUpManager.createPopUp(FlexGlobals.topLevelApplication.successfullyLogin, AddClusterPopup, true); 
+					// cast to a nameEditorPopup
+					addClusterPopup = AddClusterPopup(Helper.editNameWindow); 
+				}
+				
+				else
+				{
+					Alert.show("You have no permission to add cluster","Permission Error", 4, null, null,Helper.noEntryImg);
+				}
+			}
+			
+			public function refresh() : void 
+			{
+				getAllCluByPlan();
+				searchInput.text = "< Enter your search here >";
+			}
+			
+			public function getSelectedCluster() : void 
+			{
+				EPMSSingleton.getInstance().selectedCluster = clusterListDG.selectedItem as Clustertbl;
+				(this.parent as ViewStack).selectedChild = FlexGlobals.topLevelApplication.municipalContent.deptVS;
+			}
+			
+			public var selectedPlan : Plantbl = new Plantbl;
+			public function getSelectedPlan(event:IndexChangeEvent):void
+			{
+				selectedPlan = planInput.selectedItem;
+				getAllCluByPlan();
+			}
+			
+			public function getAllCluByPlan():void
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				remoteObject.destination = "clusterOperations";
+				remoteObject.addEventListener(FaultEvent.FAULT, getAllClusterFaultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT, getAllClusterResultHandler);
+				//remoteObject.getAllCluByPlan(selectedPlan);
+				cursorManager.setBusyCursor();
+			}
+			
+			public static function getAllClusterFaultHandler(event:FaultEvent) : void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to load clusters please contact your administrator if this continues.","Failure", 4, null, null,Helper.noEntryImg);
+			}
+			
+			public var clusterList:ArrayCollection = EPMSSingleton.getInstance().clusterList;
+			
+			public function getAllClusterResultHandler(event:ResultEvent):void
+			{
+				//Alert.show("event.result: \n"+event.result);
+				clusterList = (event.result as ArrayCollection);
+				EPMSSingleton.getInstance().clusterList = clusterList;
+				clusterListDG.dataProvider = clusterList;
+				cursorManager.removeBusyCursor();
+				setWidth();
+			}
+			
+		]]>
+	</fx:Script>
+	<mx:VBox verticalGap="0" width="100%" height="100%" paddingLeft="5" paddingBottom="5" paddingRight="5" paddingTop="5">
+		
+		<mx:Canvas x="80" y="49" width="100%" height="45" borderVisible="false">
+			<s:HGroup width="100%">
+				<s:DropDownList id="planInput" width="220" dataProvider="{EPMSSingleton.getInstance().planList}" prompt="Select Plan"
+								change="getSelectedPlan(event)"
+								labelField="name"/>
+				<mx:Spacer/><mx:Spacer/>
+				<s:VGroup>
+					<s:TextInput id="searchInput" x="68" y="7" width="186" change="search()" click="clearInnerText()"
+								 prompt="search directorates"/>
+				</s:VGroup>
+				<mx:Canvas width="80%" borderVisible="false"/>
+				<mx:Canvas width="80%" borderVisible="false"/>
+			</s:HGroup>
+		</mx:Canvas>
+		
+		<mx:Spacer/>
+		
+		<s:HGroup width="100%" paddingBottom="5">
+			<s:Label height="25" fontWeight="bold" paddingBottom="5" paddingLeft="0" paddingRight="5"
+					 paddingTop="5" text="Search returned {EPMSSingleton.getInstance().clusterList.length} result(s)"/>
+			<mx:Canvas width="80%" borderVisible="false"/>
+			<s:Label text="Municipal Clusters" paddingTop="5" fontWeight="bold" fontSize="16"/>
+			<mx:Canvas width="80%" borderVisible="false"/>
+			<mx:Canvas id="addClusterBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="addCluster()">
+				<mx:Image source="@Embed('images/BtnCreate.png')"/>
+			</mx:Canvas>
+		</s:HGroup>
+		
+		<mx:DataGrid id="clusterListDG" height="100%" width="100%" dataProvider="{EPMSSingleton.getInstance().clusterList}"
+					 doubleClick="getSelectedCluster()" doubleClickEnabled="true">
+			<mx:columns>
+				<mx:DataGridColumn headerText="ID" dataField="id" visible="false" width="40"/>
+				<mx:DataGridColumn headerText="NAME" dataField="name" id="nameDC" fontWeight="bold"/>
+				<mx:DataGridColumn headerText="DESCRIPTION" dataField="description" id="descriptionDC" fontWeight="bold"/>
+				<mx:DataGridColumn itemRenderer="content.ClusterItemRender" headerText=""/>
+			</mx:columns>
+		</mx:DataGrid>
+	</mx:VBox>
+	
+</mx:VBox>
+

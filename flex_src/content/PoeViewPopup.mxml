@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow  xmlns:fx="http://ns.adobe.com/mxml/2009" 
+				xmlns:s="library://ns.adobe.com/flex/spark" 
+				xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%"
+				creationComplete="init()" show="init()" title="View Attachments"
+				close="cancel()" xmlns:content="content.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		
+	</fx:Declarations>
+	
+	<fx:Style source="style/epms.css"/>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.helper.Status;
+			import co.za.ngwane.epms.repository.Outcometbl;
+			import co.za.ngwane.epms.repository.Outputtbl;
+			import co.za.ngwane.epms.repository.Qoupd;
+			import co.za.ngwane.epms.repository.Userepms;
+			
+			import flashx.textLayout.factory.TruncationOptions;
+			import flashx.textLayout.formats.Float;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.controls.Text;
+			import mx.core.FlexGlobals;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			import spark.events.IndexChangeEvent;
+			
+			private function init() : void
+			{
+				PopUpManager.centerPopUp(this);
+				getPoeByQoud(EPMSSingleton.getInstance().selectedQoupPoe);
+				
+			}
+			
+			public function getPoeByQoud (selectedQoup : Qoupd)
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				remoteObject.destination = "attachepmsOperations";
+				remoteObject.addEventListener(FaultEvent.FAULT, getPoeByQoudFaultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT, getPoeByQoudResultHandler);
+				remoteObject.getByQoupd(selectedQoup);
+				cursorManager.setBusyCursor();
+			}
+			
+			public static function getPoeByQoudFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to load output please contact your administrator if this continues.","Failure", 4, null, null, Helper.noEntryImg);
+			}
+			
+			public var poeList : ArrayCollection = EPMSSingleton.getInstance().poeList;
+			
+			public function getPoeByQoudResultHandler(event:ResultEvent):void
+			{
+				//Alert.show("getAllOutcomeResultHandler event.result: \n"+event.result);
+				poeList = (event.result as ArrayCollection);
+				EPMSSingleton.getInstance().poeList = poeList;
+				
+				poeListDG.dataProvider = EPMSSingleton.getInstance().poeList;
+				
+				cursorManager.removeBusyCursor();
+			}
+			
+			private function cancel() : void
+			{
+				PopUpManager.removePopUp(this);
+				EPMSSingleton.getInstance().selectedQoupPoe = new Qoupd;
+				EPMSSingleton.getInstance().poeList = new ArrayCollection;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<mx:VBox verticalGap="0" width="100%" height="100%" paddingLeft="5" paddingBottom="5" paddingRight="5" paddingTop="5">
+		
+		<mx:Spacer/>
+		
+		<s:HGroup width="100%" paddingBottom="5">
+			<s:Label height="25" fontWeight="bold" paddingBottom="5" paddingLeft="0" paddingRight="5"
+					 paddingTop="5" text="Output have {EPMSSingleton.getInstance().poeList.length} file(s) uploaded"/>
+			<mx:Canvas width="80%" borderVisible="false"/>
+		</s:HGroup>
+		
+		<mx:DataGrid id="poeListDG" height="100%" width="100%" 
+					 dataProvider="{EPMSSingleton.getInstance().poeList}">
+			<mx:columns>
+				<mx:DataGridColumn headerText="OUTPUT REF" dataField="qoupdid.outputtblid.refno" id="outputRefNoDC"/>
+				<mx:DataGridColumn headerText="QUATOR" dataField="qoupdid.quo" id="quaterDC" />
+				<mx:DataGridColumn headerText="FILE NAME" dataField="name" id="filenameDC"/>
+				<mx:DataGridColumn itemRenderer="content.PoeViewPopUpItemRender" visible="true" headerText=""/>
+			</mx:columns>
+			
+		</mx:DataGrid>
+	</mx:VBox>
+	
+</s:TitleWindow >

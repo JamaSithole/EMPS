@@ -1,0 +1,322 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox verticalGap="0" color="#004B36" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" xmlns:utils="utils.*"
+		 show="init()" xmlns:content="content.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.repository.Outcometbl;
+			import co.za.ngwane.epms.repository.Outputtbl;
+			import co.za.ngwane.epms.repository.Projtbl;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.core.IFlexDisplayObject;
+			import mx.core.IToolTip;
+			import mx.events.ToolTipEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			import spark.events.IndexChangeEvent;
+			
+			[Bindable]
+			public var outcomeObj : Object;
+			public function init():void
+			{
+				if(EPMSSingleton.getInstance().selectedOutcome != null)
+				{
+					getOutputByOutCome(EPMSSingleton.getInstance().selectedOutcome);
+					
+					for each(var outItem:Object in EPMSSingleton.getInstance().outcomeList)
+					{
+						if(EPMSSingleton.getInstance().selectedOutcome.name == outItem.name)
+						{
+							outcomeInput.selectedItem = outcomeObj = outItem;
+							break;
+						}
+					}
+					
+					EPMSSingleton.getInstance().selectedOutcome = null;
+					
+				} 
+				else
+				{
+					initComplete();
+				}
+			}
+			
+			public function initComplete():void
+			{
+				getAll();
+			}
+
+			
+			public function getAll():void
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				remoteObject.destination = "outputOperations";
+				remoteObject.addEventListener(FaultEvent.FAULT, getAllFaultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT, getAllResultHandler);
+				remoteObject.getAll();
+				cursorManager.setBusyCursor();
+			}
+			
+			public static function getAllFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to load outputs please contact your administrator if this continues.","Failure", 4, null, null,Helper.noEntryImg);
+			}
+			
+			public var outputList:ArrayCollection = EPMSSingleton.getInstance().outputList;
+			
+			public function getAllResultHandler(event:ResultEvent):void
+			{
+				//Alert.show("Output getAllResultHandler event.result: \n"+event.result);
+				outputList = (event.result as ArrayCollection);
+				EPMSSingleton.getInstance().outputList = outputList;
+				outputDG.dataProvider = EPMSSingleton.getInstance().outputList;
+				
+				cursorManager.removeBusyCursor();
+				setWidth();
+			}
+			
+			public function setWidth() : void 
+			{
+
+			}
+			
+			/*******************************************************************************************
+			 * We need to get by OutCome if it was doubleclicked from the previous page, else get all***
+			 * *****************************************************************************************/
+			
+			public function getOutputByOutCome(outcome : Outcometbl):void
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				remoteObject.destination = "outputOperations";
+				remoteObject.addEventListener(FaultEvent.FAULT,getOutputByOutComeFaultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT, getOutputByOutComeResultHandler);
+				remoteObject.getOutput(outcome);
+				cursorManager.setBusyCursor();
+			}
+			
+			public static function getOutputByOutComeFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to load outputs please contact your administrator if this continues.","Failure", 4, null, null,Helper.noEntryImg);
+			}
+			
+/* 			public var outputList:ArrayCollection = EPMSSingleton.getInstance().outputList;
+ */			
+			public function getOutputByOutComeResultHandler(event:ResultEvent):void
+			{
+				//Alert.show("Output getAllResultHandler event.result: \n"+event.result);
+				outputList = (event.result as ArrayCollection);
+				EPMSSingleton.getInstance().outputList = outputList;
+				outputDG.dataProvider = EPMSSingleton.getInstance().outputList;
+				
+				cursorManager.removeBusyCursor();
+				setWidth();
+			}
+			
+/* 			public function setWidth() : void 
+			{
+				
+			}
+
+ */			public var loadPopUp:IFlexDisplayObject; 
+			//public var myPopUp:AddUser; 
+			
+			public var addActualsPopup : AddActualsPopup; 
+			
+			public function addAtual() : void
+			{
+				if(EPMSSingleton.getInstance().outcomeAdd)
+				{
+					if(EPMSSingleton.getInstance().selectedOutput == null)
+					{
+						Alert.show("Please select an output","No Output Selected", 4, null, null,Helper.noEntryImg);
+					}
+					else
+					{
+						/*
+						Helper.editNameWindow=PopUpManager.createPopUp(FlexGlobals.topLevelApplication.successfullyLogin, AddActualsPopup, true); 
+						// cast to a nameEditorPopup
+						addActualsPopup = AddActualsPopup(Helper.editNameWindow); 
+						*/
+						(this.parent as ViewStack).selectedChild = FlexGlobals.topLevelApplication.sectionContent.addActualVS;
+					}
+				}
+				else
+				{
+					Alert.show("You have no permission to add actuals","Permission Error", 4, null, null, Helper.noEntryImg);
+				}
+			}
+			
+/* 			public function createActualMO() : void
+			{
+				//Alert.show("... Fuck U ...");
+				addUserBT.addEventListener(ToolTipEvent.TOOL_TIP_SHOW, onToolTip);
+			}
+ */			
+			public function onToolTip(event:ToolTipEvent):void
+			{
+				var toolTip:IToolTip = event.toolTip;
+				//myLabel.text = toolTip.text;
+			}
+			
+			public function getSelectedOutputDG() : void
+			{
+				EPMSSingleton.getInstance().selectedOutput = outputDG.selectedItem as Outputtbl;
+			}
+			
+			public function getSelectedOutput() : void
+			{
+				EPMSSingleton.getInstance().selectedOutputPoe = outputDG.selectedItem as Outputtbl;
+				(this.parent as ViewStack).selectedChild = FlexGlobals.topLevelApplication.poeContentVS.poeVS;
+			}
+			
+			public function myColStyleFunc(data:Object, ol:AdvancedDataGridColumn) : Object
+			{
+				/* 
+				ePMS Color Codes
+				
+				Red 			#FF0000
+				Yellow 			#FFFF00
+				Green 			#00FF00
+				DarkGreen 		#006600
+				Blue 			#0000FF
+				*/
+				/*
+				if(data["currq"] == EPMSSingleton.getInstance().Q1)
+				{
+					var q1Score : Number = data["q1a"] + data["q1"];
+					
+					if(q1Score < 100)
+					{
+						return {color:0x00FF00};
+					}
+				}
+				
+				if(data["currq"] == EPMSSingleton.getInstance().Q2)
+				{
+					var test : Number = data["q2a"] + data["q2"];
+						
+					if(data["q2a"] <= 100)
+					{
+						return {color:0x00FF00};
+					}
+				}
+				*/
+				
+				if(data["q1a"] <= 11)
+				{
+					return {color:0x00FF00};
+				}
+				
+				return null;
+			}  
+			
+			// Callback function that highlights in red 
+			// all rows for the selected artist.
+			public function myStyleFunc(data:Object, 
+										col:AdvancedDataGridColumn):Object
+			{
+				//One will do the styling here  
+				return null;
+			}
+			
+			public var selectedOutcome : String = "";
+			public function getSelectedOutcome(event:IndexChangeEvent):void
+			{
+				selectedOutcome = outcomeInput.selectedItem;
+			}
+			
+		]]>
+	</fx:Script>
+	<mx:VBox verticalGap="0" width="100%" height="100%" paddingLeft="5" paddingBottom="5" paddingRight="5" paddingTop="5">
+		
+		<mx:Canvas x="80" y="49" width="100%" height="45" borderVisible="false">
+			<s:HGroup width="100%">
+				<s:DropDownList id="outcomeInput" width="220" dataProvider="{EPMSSingleton.getInstance().outcomeList}" prompt="Select Outcome" change="getSelectedOutcome(event)"
+								labelField="name"/>
+				<mx:Spacer/><mx:Spacer/>
+				
+				<!--<mx:Canvas id="refreshBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="refresh()">
+				<mx:Image source="@Embed('images/BtnRefresh.png')"/>
+				</mx:Canvas>-->
+			</s:HGroup>
+		</mx:Canvas>
+		
+		<mx:Spacer/>
+		
+		<s:HGroup width="100%" paddingBottom="5">
+			<s:Label height="25" fontWeight="bold" paddingBottom="5" paddingLeft="0" paddingRight="5"
+					 paddingTop="5" text="Search returned {EPMSSingleton.getInstance().outputList.length} result(s)"/>
+			<mx:Canvas width="80%" borderVisible="false"/>
+			<s:Label text="Project's Outputs" paddingTop="5" fontWeight="bold" fontSize="16"/>
+			<mx:Canvas width="80%" borderVisible="false"/>
+			<!--<mx:Canvas id="addUserBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="addAtual()" mouseOver="createActualMO()"
+					   toolTip="Create or edit actual values">
+				<mx:Image source="@Embed('images/BtnAmend.png')" />
+			</mx:Canvas>-->
+		</s:HGroup>
+		
+		<mx:AdvancedDataGrid id="outputDG" 
+							 width="100%" height="100%" 
+							 dataProvider="{EPMSSingleton.getInstance().outputList}" itemClick="getSelectedOutputDG()"
+							 doubleClick="getSelectedOutput()" doubleClickEnabled="true"
+							 styleFunction="myStyleFunc">
+			
+			<mx:groupedColumns>
+				
+				<mx:AdvancedDataGridColumn headerText="Ref No" dataField="refno"/>
+				<mx:AdvancedDataGridColumn headerText="Indicator" dataField="indicator"/>
+				<mx:AdvancedDataGridColumn headerText="Status" dataField="refno"/>
+				
+				<mx:AdvancedDataGridColumnGroup headerText="Qauter 1" id="test">    
+					<mx:AdvancedDataGridColumn dataField="q1" headerText="T"/>
+					<mx:AdvancedDataGridColumn dataField="q1a" headerText="A" styleFunction="myColStyleFunc"/>
+					<mx:AdvancedDataGridColumn dataField="q1fs" headerText="FS"/>
+				</mx:AdvancedDataGridColumnGroup>   
+				
+				<mx:AdvancedDataGridColumnGroup headerText="Qauter 2">    
+					<mx:AdvancedDataGridColumn dataField="q2" headerText="T"/>
+					<mx:AdvancedDataGridColumn dataField="q2a" headerText="A"/>
+					<mx:AdvancedDataGridColumn dataField="q2fs" headerText="FS"/>
+				</mx:AdvancedDataGridColumnGroup>   
+				
+				<mx:AdvancedDataGridColumnGroup headerText="Qauter 3">    
+					<mx:AdvancedDataGridColumn dataField="q3" headerText="T"/>
+					<mx:AdvancedDataGridColumn dataField="q3a" headerText="A"/>
+					<mx:AdvancedDataGridColumn dataField="q3fs" headerText="FS"/>
+				</mx:AdvancedDataGridColumnGroup> 
+				
+				<mx:AdvancedDataGridColumnGroup headerText="Qauter 4">    
+					<mx:AdvancedDataGridColumn dataField="q4" headerText="T"/>
+					<mx:AdvancedDataGridColumn dataField="q4a" headerText="A"/>
+					<mx:AdvancedDataGridColumn dataField="q4fs" headerText="FS"/>
+				</mx:AdvancedDataGridColumnGroup>   
+				
+				<mx:AdvancedDataGridColumn headerText="Ave. Score" dataField="avgScore"/>
+				
+			</mx:groupedColumns>
+			
+		</mx:AdvancedDataGrid>
+		
+	</mx:VBox>
+	
+</mx:VBox>
+

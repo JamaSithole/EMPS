@@ -1,0 +1,92 @@
+package co.za.ngwane.epms.serviceImpl;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.log4j.Logger;
+
+import co.za.ngwane.epms.dao.QoupdDAO;
+import co.za.ngwane.epms.repository.Outputtbl;
+import co.za.ngwane.epms.repository.Qoupd;
+import co.za.ngwane.epms.repository.Usermessages;
+import co.za.ngwane.epms.service.QoupdService;
+
+public class QoupdServiceImpl implements QoupdService
+{
+	private static Logger logger = Logger
+			.getLogger("co.za.ngwane.epms.operation.QoupdServiceImpl");
+
+	@Override
+	public boolean add(Qoupd qoupd) throws Exception 
+	{
+		boolean result = false;
+		try
+		{
+			if(qoupd != null){
+				result = new QoupdDAO().addQoupd(qoupd);		
+				if(result){
+					logger.info("Now Removing Future messages for Output [  Indicator "+ qoupd.getOutputtblid().getIndicator() + " Reference [ "+ qoupd.getOutputtblid().getRefno() + "]");
+					for(Usermessages usermessage : qoupd.getOutputtblid().getMessageCollection()){
+						usermessage.setStatus(2);
+						result = new NotificationServiceImpl().update(usermessage);
+					}
+					logger.info("Done Updating Messages for Output [ Reference = " + qoupd.getOutputtblid().getRefno()+ "]");
+				}
+			}
+			
+		} catch (Exception e)	
+		{
+			logger.info("Exception caught in adding Qoup Object : "+e.getMessage());
+		}
+		return result;
+	}
+
+	@Override
+	public List<Qoupd> getAll() throws Exception
+	{
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public List<Qoupd> getByOutput(Outputtbl outputtbl) throws Exception
+	{
+		List<Qoupd> resultList = new ArrayList<Qoupd>();
+		try
+		{
+			resultList = new QoupdDAO().getByOutputName(outputtbl);
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return resultList;
+	}
+	
+	public List<Qoupd> getRejectedByOutput(Outputtbl outputtbl) throws Exception
+	{
+		List<Qoupd> resultList = new ArrayList<Qoupd>();
+		try
+		{
+			resultList = new QoupdDAO().getRejectedByOutputName(outputtbl);
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return resultList;
+	}
+
+	@Override
+	public List<Qoupd> getQoupByOutput(Outputtbl outputtbl) throws Exception {
+		List<Qoupd> resultList = new ArrayList<Qoupd>();
+		try
+		{
+			resultList = new QoupdDAO().getQoupByOutput(outputtbl);
+		} catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return resultList;
+	}
+
+
+}

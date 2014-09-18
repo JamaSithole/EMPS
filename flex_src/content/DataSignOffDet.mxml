@@ -1,0 +1,384 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox xmlns:fx="http://ns.adobe.com/mxml/2009"
+		 xmlns:s="library://ns.adobe.com/flex/spark"
+		 xmlns:mx="library://ns.adobe.com/flex/mx"
+		 xmlns:utils="utils.*"
+		 xmlns:content="content.*"
+		 width="100%" height="100%" color="#004B36" creationComplete="init()" show="init()"
+		 verticalGap="0">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Style source="style/epms.css"/>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.helper.Status;
+			import co.za.ngwane.epms.repository.Outputtbl;
+			import co.za.ngwane.epms.repository.Qoupd;
+			
+			import flashx.textLayout.formats.Float;
+			
+			import mx.binding.utils.BindingUtils;
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.controls.Text;
+			import mx.core.FlexGlobals;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			import spark.events.IndexChangeEvent;
+			
+			[Bindable]
+			public var idTypeObj : Object;
+			
+			[Bindable]
+			public var q1Obj : Qoupd;
+			[Bindable]
+			public var q2Obj : Qoupd;
+			[Bindable]
+			public var q3Obj : Qoupd;
+			[Bindable]
+			public var q4Obj : Qoupd;
+			
+			[Bindable]
+			public var signOffFail : Boolean = false;
+			[Bindable]
+			public var targetNotMet : Boolean = false;
+			
+			public function init() : void
+			{
+				//Alert.show(" EPMSSingleton.getInstance().selectedOutput.updates is : "+ EPMSSingleton.getInstance().selectedQoup);
+				/* signOff.selectedValue = Status.NO;
+				Emp
+				for each  ( var qObj : Qoupd in EPMSSingleton.getInstance().selectedOutput.updates )
+				{
+					if(qObj.quo == EPMSSingleton.getInstance().Q1 )
+					{ 
+						q1Obj = qObj;
+					}
+					else if(qObj.quo == EPMSSingleton.getInstance().Q2 )
+					{
+						q2Obj = qObj;
+					}
+					else if(qObj.quo == EPMSSingleton.getInstance().Q3 )
+					{
+						q3Obj = qObj;
+					}
+					else if(qObj.quo == EPMSSingleton.getInstance().Q4 )
+					{
+						q4Obj = qObj;
+					}
+				}
+				 */
+				//Alert.show("q1Obj.tmet is : "+q1Obj.tmet);
+				if(EPMSSingleton.getInstance().selectedQoup.tmet){
+					targetNotMet = false;;
+				}else{
+					targetNotMet = true;;
+				}
+				
+			}
+			
+			public function cancel() : void
+			{
+				PopUpManager.removePopUp(this);
+			}
+			
+			public function doBack() : void
+			{
+				//(this.parent as ViewStack).selectedIndex = 3;
+				(this.parent as ViewStack).selectedChild = FlexGlobals.topLevelApplication.dataSignOffContent.dataSignOffVS;
+			}
+			
+			public var selectedAudStatus1 : String = "";
+			public var selectedAudStatus2 : String = "";
+			public var selectedAudStatus3 : String = "";
+			public var selectedAudStatus4 : String = "";
+			
+			public function getSelectedAuditStatus(event:IndexChangeEvent):void
+			{
+				
+			}
+			
+			public function submitRequest():void
+			{
+				if(signOffFail){
+					doReject();
+				}else{
+					doSubmit();
+				}
+			}
+			
+			public function doSubmit() : void
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				var selectedDataSignOff : ArrayCollection = new ArrayCollection();
+				selectedDataSignOff.addItem(EPMSSingleton.getInstance().selectedQoup);
+				EPMSSingleton.getInstance().selectedQoup.reasonf = reasonFailure1Input.text;
+				EPMSSingleton.getInstance().selectedQoup.paction = plandAction1Input.text;
+				EPMSSingleton.getInstance().selectedQoup.pastartd = startD1Input.selectedDate;
+				EPMSSingleton.getInstance().selectedQoup.paendd = endD1Input.selectedDate;
+								
+				remoteObject.destination = "outputUpdateOperations";
+				remoteObject.addEventListener(FaultEvent.FAULT,  submitSignOffFaultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT,  submitSignOffResultHandler);
+				remoteObject.signOffOutput(selectedDataSignOff, EPMSSingleton.getInstance().currentUser);
+				cursorManager.setBusyCursor();
+			
+			}
+			public function doReject() : void
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				var selectedDataSignOff : ArrayCollection = new ArrayCollection();
+				EPMSSingleton.getInstance().selectedQoup.reasonf = reasonFailure1Input.text;
+				EPMSSingleton.getInstance().selectedQoup.paction = plandAction1Input.text;
+				EPMSSingleton.getInstance().selectedQoup.pastartd = startD1Input.selectedDate;
+				EPMSSingleton.getInstance().selectedQoup.paendd = endD1Input.selectedDate;
+				
+				selectedDataSignOff.addItem(EPMSSingleton.getInstance().selectedQoup);
+				remoteObject.destination = "outputUpdateOperations";
+				remoteObject.addEventListener(FaultEvent.FAULT,  submitSignOffRejectFaultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT,  submitSignOffRejectResultHandler);
+				remoteObject.rejectOffOutput(selectedDataSignOff,EPMSSingleton.getInstance().currentUser);
+				cursorManager.setBusyCursor();
+				
+			}
+			public static function  submitSignOffFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to load ndp please contact your administrator if this continues.","Failure", 4, null, null, Helper.noEntryImg);
+			}
+			public function  submitSignOffResultHandler(event:ResultEvent):void
+			{
+				//Alert.show("event.result: \n"+event.result);
+				var results : Boolean= (event.result as Boolean);
+				if(results)
+				{
+					Alert.show("Data signed off successfully.","Successful", 4, null, null, Helper.accept);
+					(this.parent as ViewStack).selectedChild = FlexGlobals.topLevelApplication.dataSignOffContent.dataSignOffVS;
+				}
+				else
+				{
+					Alert.show("Failed to sign off data.","Failure", 4, null, null, Helper.noEntryImg);
+				}
+				
+				cursorManager.removeBusyCursor();
+			}
+			public static function  submitSignOffRejectFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("System unavailable please contact your administrator if this continues.","Failure", 4, null, null, Helper.noEntryImg);
+			}
+			
+			public function  submitSignOffRejectResultHandler(event:ResultEvent):void
+			{
+				//Alert.show("event.result: \n"+event.result);
+				var results : Boolean= (event.result as Boolean);
+				if(results)
+				{
+					Alert.show("Data signed off successfully.","Successful", 4, null, null, Helper.accept);
+					EPMSSingleton.getInstance().selectedDataSignOff = new ArrayCollection;
+					init();
+					(this.parent as ViewStack).selectedChild = FlexGlobals.topLevelApplication.dataSignOffContent.dataSignOffVS;
+				}
+				else
+				{
+					Alert.show("Failed to sign off data.","Failure", 4, null, null, Helper.noEntryImg);
+				}
+				
+				cursorManager.removeBusyCursor();
+			}
+			
+			
+			public function doSignOff() : void
+			{
+				if(signOff.selectedValue.toString() == Status.YES)
+				{
+					signOffFail = false;
+					
+					reasonToRejInput.visible = false;
+					reasonToRejInput.includeInLayout = false;
+					commentInput.visible = false;
+					commentInput.includeInLayout = false;
+				}
+				else
+				{
+					signOffFail = true;
+					reasonToRejInput.visible = true;
+					reasonToRejInput.includeInLayout = true;
+					commentInput.visible = true;
+					commentInput.includeInLayout = true;
+				}
+			}
+		]]>
+	</fx:Script>
+	
+	<mx:HBox width="100%" height="100%">
+		<mx:Canvas width="1%" height="100%"/>
+		
+		<mx:VBox width="100%">
+			<mx:HBox width="100%">
+				<mx:Form width="80%">
+					<mx:Spacer/>
+					
+					<mx:FormItem label="Ref Number:">
+						<s:TextInput id="refnoInput" width="220"
+									 text="{EPMSSingleton.getInstance().selectedQoup.outputtblid.refno}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Indicator:">
+						<s:TextInput id="indicatorInput" width="220"
+									 text="{EPMSSingleton.getInstance().selectedQoup.outputtblid.indicator}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Project:">
+						<s:TextInput id="surnameInput" width="220"
+									 text="{EPMSSingleton.getInstance().selectedQoup.outputtblid.outcometblid.projtblid.name}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Outcome:">
+						<s:TextInput id="outcomeInput" width="220"
+									 text="{EPMSSingleton.getInstance().selectedQoup.outputtblid.outcometblid.name}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Total Budget:">
+						<s:TextInput id="totBudgetInput" width="220"
+									 text="{EPMSSingleton.getInstance().selectedQoup.outputtblid.totbud}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Budget Spend:">
+						<s:TextInput id="budgetSpendInput" width="220"
+									 text="{EPMSSingleton.getInstance().selectedQoup.budspend}"/>
+					</mx:FormItem>
+					
+				</mx:Form>
+				
+				<mx:Form width="80%" height="100%">
+					<mx:Spacer/>
+					<mx:FormItem label="Plan:">
+						<s:TextInput id="planInput" width="220"
+									 text="{EPMSSingleton.getInstance().selectedQoup.outputtblid.outcometblid.projtblid.progtblid.sectionid.name}"/> 
+					</mx:FormItem>
+					<mx:FormItem label="Section:">
+						<s:TextInput id="idNumberInput" width="220"
+									 text="{EPMSSingleton.getInstance().selectedQoup.outputtblid.outcometblid.projtblid.progtblid.sectionid.name}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Cluster:">
+						<s:TextInput id="contactNumberInput" width="220"
+									 text="{EPMSSingleton.getInstance().selectedQoup.outputtblid.outcometblid.projtblid.progtblid.sectionid.directorateid.deptid.clusterid.name}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Program:">
+						<s:TextInput id="progInput" width="220"
+									 text="{EPMSSingleton.getInstance().selectedQoup.outputtblid.outcometblid.projtblid.progtblid.name}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Department:">
+						<s:TextInput id="deptInput" width="220"
+									 text="{EPMSSingleton.getInstance().selectedQoup.outputtblid.outcometblid.projtblid.progtblid.sectionid.directorateid.deptid.name}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Owner:">
+						<s:TextInput id="ownerInput" width="220"
+									 text="{EPMSSingleton.getInstance().selectedQoup.outputtblid.userid.name}"/>
+					</mx:FormItem>
+				</mx:Form>
+			</mx:HBox>
+			
+			<!--Quater 1-->
+			<mx:HBox width="100%">
+			<mx:HBox width="100%" borderVisible="true">
+				<mx:Form width="80%" height="100%">
+					<mx:Spacer/>
+					<s:Label fontWeight="bold" text=" Quater Information" textAlign="center"/>
+					<mx:Spacer/>
+					
+					<mx:FormItem label="Target:">
+						<s:TextInput id="target1Input" width="300"
+									 text="{EPMSSingleton.getInstance().selectedQoup.currentqTarget}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Actual:">
+						<s:TextInput id="actual1Input" width="300"
+									 text="{EPMSSingleton.getInstance().selectedQoup.qscore}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Final Score:">
+						<s:TextInput id="finalScore1Input" width="220"
+									 text="{EPMSSingleton.getInstance().selectedQoup.qscore}"/>
+					</mx:FormItem>
+					
+					<mx:FormItem label="Sign Off:" id="signOffFI">
+						<mx:HBox>
+							<s:RadioButtonGroup id="signOff" change="doSignOff()"/>
+							<s:RadioButton id="signOffYInput" width="45" label="Yes"
+										   groupName="signOff"/>
+							<s:RadioButton id="signOffNInput" width="45" label="No"
+										   groupName="signOff"/>
+						</mx:HBox>
+					</mx:FormItem>
+					
+					<mx:FormItem id="reasonToRejSignOffFI" visible="{signOffFail}"  label = "Reason:"  includeInLayout="{signOffFail}">
+						<s:TextInput id="reasonToRejInput" width="300" 
+									 text="{EPMSSingleton.getInstance().selectedQoup.reasonf}"/>
+					</mx:FormItem>
+					<mx:FormItem includeInLayout="{signOffFail}"  visible="{signOffFail}" id="commentFI" label="Comment:">
+						<s:TextInput id="commentInput" width="300" includeInLayout="{signOffFail}"
+									 text="{EPMSSingleton.getInstance().selectedQoup.comment}"/>
+					</mx:FormItem>
+					
+				</mx:Form>
+				
+				<mx:Form width="80%" height="100%" visible="{targetNotMet}" includeInLayout="{targetNotMet}">
+					<mx:Spacer/>
+					
+					<s:Label visible="{targetNotMet}" fontWeight="bold" includeInLayout="{targetNotMet}"
+							 text=" Quater 1" textAlign="center"/>
+					
+					<mx:FormItem label="Reason For Failure:" includeInLayout="{targetNotMet}">
+						<s:TextInput id="reasonFailure1Input" width="300"
+									 includeInLayout="{targetNotMet}" text="{EPMSSingleton.getInstance().selectedQoup.reasonf}"/>
+					</mx:FormItem>
+					<mx:FormItem label="Planned Action:" includeInLayout="{targetNotMet}">
+						<s:TextInput id="plandAction1Input" width="300"
+									 includeInLayout="{targetNotMet}" text="{EPMSSingleton.getInstance().selectedQoup.coraction}"/>
+					</mx:FormItem>
+					
+					<mx:FormItem label="Start Date:" includeInLayout="{targetNotMet}">
+						<mx:DateField id="startD1Input" width="110" enabled="true"
+									  formatString="{Helper.dateFormat}"
+									  includeInLayout="{targetNotMet}"
+									  selectedDate="{new Date(EPMSSingleton.getInstance().selectedQoup.pastartd)}"
+									  text="{EPMSSingleton.getInstance().selectedQoup.pastartd}"/>
+					</mx:FormItem>
+					<mx:FormItem label="End Date:" includeInLayout="{targetNotMet}">
+						<mx:DateField id="endD1Input" width="110" enabled="true"
+									  formatString="{Helper.dateFormat}"
+									  includeInLayout="{targetNotMet}"
+									  selectedDate="{new Date(EPMSSingleton.getInstance().selectedQoup.paendd)}"
+									  text="{EPMSSingleton.getInstance().selectedQoup.paendd}"/>
+					</mx:FormItem>
+					
+				</mx:Form>
+				
+			</mx:HBox>
+				
+			<mx:Canvas visible="false" width="10%"/>
+			</mx:HBox>
+						
+			<mx:HBox width="100%" horizontalAlign="center" paddingTop="10">
+				<mx:Canvas id="submitBT" buttonMode="true" click="submitRequest()" mouseChildren="false"
+						   useHandCursor="true">
+					<mx:Image source="@Embed('images/BtnSubmit.png')"/>
+				</mx:Canvas>
+				<mx:Canvas id="backBT" buttonMode="true" click="doBack()" mouseChildren="false"
+						   useHandCursor="true">
+					<mx:Image source="@Embed('images/BtnBack.png')"/>
+				</mx:Canvas>
+			</mx:HBox>
+			<mx:Spacer/><mx:Spacer/><mx:Spacer/><mx:Spacer/><mx:Spacer/><mx:Spacer/>
+		</mx:VBox>
+	</mx:HBox>
+</mx:VBox>
+

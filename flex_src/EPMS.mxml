@@ -1,0 +1,685 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009"
+			   xmlns:s="library://ns.adobe.com/flex/spark"
+			   xmlns:mx="library://ns.adobe.com/flex/mx"
+			   xmlns:content="content.*"
+			   xmlns:chrome="components.chrome.*"
+			   xmlns:controlbars="components.controlbars.*"
+			   minWidth="955" minHeight="600" backgroundColor="#FFFFFF"
+			   mouseMove="resetLogoutTimer(event)"
+			   keyFocusChange="resetLogoutTimer()"
+			   pageTitle="ePMS (Epsitech Performance Management Suite)" styleName="backgroundImage" >
+	
+	<fx:Style>
+		@namespace s "library://ns.adobe.com/flex/spark";
+		@namespace mx "library://ns.adobe.com/flex/mx";
+		@namespace content "content.*";
+		@namespace chrome "components.chrome.*";
+		@namespace controlbars "components.controlbars.*";
+		
+		mx|Application 
+		{
+			/* closeButtonSkin: Embed("/images/button_on_closeg.png");
+			minimize-button-skin: Embed("/images/button_on_ming.png");
+			maximize-button-skin: Embed("/images/button_on_max2g.png");
+			restore-button-skin:Embed("/images/button_on_maxg.png"); */
+		}
+		
+		.titleText 
+		{
+			font-family:Arial;
+			font-size:14;
+			font-weight:bold;
+			color:#FFFFFF;
+			font-style:italic;
+			padding-left:5;
+		} 
+		
+		s|Button
+		{
+			skinClass: ClassReference("skins.CustomButtonSkin");
+		}
+		
+		.buttonLabel
+		{
+			font-family:Arial;
+			font-size:12;
+			font-weight:bold;
+			color:#FFFFFF;
+			text-align:center;
+			horizontal-center:0;
+			vertical-center:0;
+			vertical-align:middle;
+		}
+		
+		.buttonLabelOver
+		{
+			font-family:Arial;
+			font-size:12;
+			font-weight:bold;
+			color:#004B36;
+			text-align:center;
+			horizontal-center:0;
+			vertical-center:0;
+			vertical-align:middle;
+		}
+		
+	</fx:Style>
+	
+	<fx:Style source="style/epms.css"/>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.helper.Status;
+			
+			import components.controlbars.BottomControlBar;
+			import components.controlbars.TopControlBar;
+			
+			import content.BudgetRptReqPopup;
+			
+			import mx.collections.XMLListCollection;
+			import mx.controls.Alert;
+			import mx.controls.Menu;
+			import mx.core.FlexGlobals;
+			import mx.core.IChildList;
+			import mx.core.IFlexDisplayObject;
+			import mx.core.UIComponent;
+			import mx.events.CloseEvent;
+			import mx.events.MenuEvent;
+			import mx.events.ResizeEvent;
+			import mx.managers.CursorManager;
+			import mx.managers.PopUpManager;
+			import mx.managers.SystemManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.skins.ProgrammaticSkin;
+			import mx.skins.halo.WindowBackground;
+			
+			[Bindable]
+			var epmsSingleton:EPMSSingleton = EPMSSingleton.getInstance();
+			
+			public var space : String = " ";
+			
+			private var alrt:Alert;        	
+			private var alertTimer : Timer;  
+			private var autoRefreshTimer : Timer; 
+			private var logoutTimer : Timer; 
+			//number of second left for the alert to close
+			private var secondsLeft:Number;
+			//duration for displaying the alert
+			private var duration:Number = 15;
+			
+			//duration(20 minute) for logout if there is no activite on the window
+			[Bindable]public var logoutDuration : Number;
+			
+			//duration(5 minute) for refreshing application list
+			[Bindable]public var autoRefreshDuration : Number;
+			
+			
+			//text for ok label
+			private var strOk : String = "Continue";
+			//text for ok label
+			private var strCancel : String = "Logout";
+			//message to be displayed on the alert
+			private var strMsg:String = "Do you want to continue working ? Remaining Second(s) [15]"; 
+			//alert title
+			private var strTitle : String = "You are about to be logged out";
+			
+			[Bindable]
+			public var loggedIn:Boolean;
+			
+			public var resizing : Boolean = false;
+			
+			[Bindable]
+			[Embed(source="icon/home_2.png")]
+			public var homeIcon:Class;
+			
+			[Bindable]
+			[Embed(source="icon/org_2.png")]
+			public var orgIcon:Class;	
+			
+			[Bindable]
+			[Embed(source="icon/dataSignOff_3.png")]
+			public var dataSignOffIcon:Class;
+			
+			[Bindable]
+			[Embed(source="icon/poe_2.png")]
+			public var poeIcon:Class;
+			
+			[Bindable]
+			[Embed(source="icon/report_v3.png")]
+			public var rptIcon:Class;
+			
+			[Bindable]
+			[Embed(source="icon/userII.png")]
+			public var userIcon:Class;
+			
+			[Bindable]
+			[Embed(source="icon/budgetII.png")]
+			public var budgetIcon:Class;
+			
+			[Bindable]
+			[Embed(source="icon/scoringII.png")]
+			public var scoringIcon:Class;
+			
+				
+			[Bindable]
+			[Embed(source="icon/strategy.png")]
+			public var strategyIcon:Class;
+			
+			[Bindable]
+			[Embed(source="icon/program.png")]
+			public var progIcon:Class;
+			
+			[Bindable]
+			[Embed(source="icon/communication.png")]
+			public var comIcon:Class;
+			
+			[Bindable]
+			[Embed(source="icon/auditTrail.png")]
+			public var audTrailIcon:Class;
+			
+			[Bindable]
+			[Embed(source="icon/internalAudit.png")]
+			public var intAudIcon:Class;
+			
+			[Bindable]
+			[Embed(source="icon/dashBoard.png")]
+			public var dashBoardIcon:Class;
+			
+			[Bindable]
+			[Embed(source="icon/email.png")]
+			public var emailIcon:Class;
+			
+			[Bindable]
+			[Embed(source="icon/sms.png")]
+			public var smsIcon:Class;
+			
+			[Bindable]
+			[Embed(source="icon/logout.png")]
+			public var logOutIcon:Class;
+			
+			[Bindable]
+			[Embed(source="icon/add.png")]
+			public var myRadioIcon:Class;
+			
+			[Bindable]
+			[Embed(source="icon/clear.png")]
+			public var myCheckIcon:Class;
+			
+			[Bindable]
+			[Embed(source="icon/find.png")]
+			public var myTopIcon:Class;
+			
+			public function init():void
+			{	
+			}
+			
+			private function setHomeViewStack(index : int):void
+			{
+				if(index <= homeVS.getChildren().length -1 )
+				{
+					homeVS.selectedIndex = index;
+				}
+			}
+			
+			
+			/**
+			 * handle the close event if buttons are clicked
+			 */
+			private function confirmAction(event:CloseEvent) : void
+			{
+				switch (event.detail)
+				{
+					case Alert.YES:
+						resetLogoutTimer(); 
+						alertTimer.reset();
+						alrt = null;
+						break;	
+					case Alert.NO:
+						alertTimer.reset();
+						alrt = null;
+						onLogout();
+						doLogOut();
+						break;
+				}				
+				
+			}
+			
+			
+			private function onLogout():void
+			{
+				//homeVS.selectedChild = pdfInitialize;
+				EPMSSingleton.getInstance().currentUser = null;
+				mainNavigator.selectedChild = login;
+				closePopUpWindow();
+				logoutTimer.stop();
+				autoRefreshTimer.stop();
+				alrt = null;
+				doLogOut();
+			}
+			
+			/**
+			 * function for creating an alert
+			 */
+			public function createLogoutTimer():void
+			{
+				logoutTimer = new Timer(1000,logoutDuration);
+				logoutTimer.addEventListener(TimerEvent.TIMER, logoutTimerHandler);
+				logoutTimer.start();			
+			}
+			
+			/**
+			 * update the contents display 
+			 */
+			private function logoutTimerHandler(event:Event):void
+			{
+				
+				if(!isPopupExist){				
+					if( logoutTimer.currentCount == logoutDuration && alrt == null )
+					{
+					    closePopUpWindow();
+						if(isPopupExist){
+							resetLogoutTimer();
+						}else{
+							showAlert();
+						}
+						
+					} 
+				}else{
+					isPopupExist = false;
+				}
+			}
+			
+			/**
+			 * function for creating an alert
+			 */
+			private function showAlert() : void
+			{            		
+				alrt = Alert.show(strMsg, strTitle,Alert.YES | Alert.NO, this, confirmAction, Helper.question, Alert.OK);
+				//Get a reference to the Alert control's internal buttons array.
+				var buttonArray:Array = alrt.mx_internal::alertForm.mx_internal::buttons;
+				
+				//Set the first button to the TickIcon class, and the second icon to the CrossIcon class.
+				buttonArray[0].setStyle("icon", Helper.accept);
+				buttonArray[1].setStyle("icon", Helper.cancel );
+				buttonArray[0].width = 80;	
+				buttonArray[1].width = 80;
+				
+				createAlertTimer();
+			}
+			
+			private function resetLogoutTimer(event : MouseEvent = null):void
+			{
+				if ( logoutTimer != null && EPMSSingleton.getInstance().currentUser != null ) {
+					logoutTimer.reset();
+					logoutTimer.start();
+				}
+				
+			}			
+		/* 	private function resetLogoutTimer(event : KeyboardEvent = null):void
+			{
+				if ( logoutTimer != null && EPMSSingleton.getInstance().currentUser != null ) {
+					logoutTimer.reset();
+					logoutTimer.start();
+				}
+				
+			} */
+			private function resetLogoutTimerKeyBoard(event : KeyboardEvent = null):void
+			{
+				if ( logoutTimer != null && EPMSSingleton.getInstance().currentUser != null ) {
+					logoutTimer.reset();
+					logoutTimer.start();
+				}
+				
+			}
+			
+			
+			/**
+			 * function for creating an alert
+			 */
+			private function createAlertTimer():void
+			{
+				alertTimer = new Timer(1000,duration);
+				alertTimer.addEventListener(TimerEvent.TIMER, alertTimerHandler);
+				alertTimer.addEventListener(TimerEvent.TIMER_COMPLETE, timerCompleteHandler);
+				alertTimer.start();			
+			}
+			
+			/**
+			 * update the contents display 
+			 */
+			private function alertTimerHandler(event:Event):void
+			{
+				secondsLeft = (duration - alertTimer.currentCount);
+				alrt.mx_internal::alertForm.mx_internal::textField.height	= 40;
+				alrt.mx_internal::alertForm.mx_internal::textField.text  	= "Do you want to continue? Remaining Second(s) ["+secondsLeft+"]";
+			}
+			
+					
+			/**
+			 * close the alert if the timer is complete 
+			 */
+			private function timerCompleteHandler(event:Event=null):void
+			{				
+				PopUpManager.removePopUp(alrt);
+				alertTimer.reset();
+				alrt = null;
+				onLogout();
+			}
+			
+			
+			
+			
+			[bindable]
+			
+			private function logOut():void
+			{
+				Alert.yesLabel = "Yes";
+				Alert.noLabel = "No";
+				Alert.show("Are you sure you want to log out?", "User Log Out ", 3, null, logOutClickHandler);
+			}
+			
+			private function logOutClickHandler(event:CloseEvent) : void 
+			{
+				if (event.detail==Alert.YES)
+				{
+					doLogOut();
+				}
+				else
+				{
+					return;
+				}
+			}
+			
+			public function doLogOut() : void
+			{
+				if(EPMSSingleton.getInstance().currentUser != null)
+				{
+					if(EPMSSingleton.getInstance().currentUser.env == Status.DEV_ENV)
+					{
+						navigateToURL(new URLRequest('http://localhost:8080/EPMS/EPMS.html'), '_self');
+					}
+					else
+					{
+						navigateToURL(new URLRequest('http://41.185.31.71:8080/EPMS/EPMS.html'), '_self');
+					}
+				} 
+				
+			}
+			//Check for active popups 
+			
+			//set the flag to find your popup window is exist or not.
+			[Bindable]
+			private var isPopupExist:Boolean = false;
+			
+			private function closePopUpWindow():void
+			{
+				
+				var systemManager:SystemManager = FlexGlobals.topLevelApplication.systemManager;
+				
+				//Returns a list of all children.
+				var childList:IChildList = systemManager.rawChildren;
+				for(var i:int=childList.numChildren-1;i>=0;i--)
+				{
+					var childObject:* = childList.getChildAt(i);
+					//If child object is Uicomponent.
+					if (childObject is UIComponent)
+					{
+						var uiComponent:UIComponent = childObject as UIComponent;
+						//If uicomponent is popup and class name is equal to **your popup component name** here i am using "ChatComp".
+						
+						if (uiComponent.isPopUp)
+						{ 
+							isPopupExist = true;
+							//PopUpManager.removePopUp(uiComponent);
+						}
+					}
+				} 
+			}
+			
+			//Show Under Construction Alert for Incomplete Functionality
+			private function showUnderConstruction():void
+			{
+				Alert.show("Functionality Not Available Yet!!!", "Under Construction", 4, null, null, Helper.noEntryImg);
+			}
+			
+			public function doprojNdpLitemsVS() : void
+			{
+				//changeColor(ndpLinksBT);homeVS.selectedChild=ndpContent
+			}
+			
+			public function dataSignOffInit() : void
+			{
+				FlexGlobals.topLevelApplication.dataSignOffContent.dataSignOffVS.init();
+			}
+			
+			public function rejectSignOffInit() : void
+			{
+				FlexGlobals.topLevelApplication.rejectedDataSignOffContent.rejectedDataSignOffVS.init();
+			}
+			
+			public function reportInit() : void
+			{
+				FlexGlobals.topLevelApplication.reportContent.reportVS.init();
+			}
+			
+			private function getSubMenus() : void
+			{
+			
+			}
+			
+			private function doShowMenu() : void  
+			{
+				var myMenu:Menu = Menu.createMenu(null, myMenuData, false);
+				myMenu.labelField="@label";
+				
+				// Specify the check icon.
+				myMenu.setStyle('checkIcon', myCheckIcon);
+				
+				// Specify the radio button icon.
+				myMenu.setStyle('radioIcon', myRadioIcon);
+				
+				// Specify the icon for the topmenu items.
+				myMenu.iconField="@icon";
+				myMenu.show(10, 10);
+				
+				myMenu.addEventListener(MenuEvent.ITEM_CLICK, menuShowInfo);
+				
+				//myMenu.show();
+			}
+			
+			private function menuShowInfo(event:MenuEvent):void {
+				
+				if (event.item.@label == epmsSingleton.homeLbl) 
+				{
+					homeVS.selectedChild=home;
+				}
+				else if (event.item.@label == epmsSingleton.municipalLbl) 
+				{
+					homeVS.selectedChild=municipalContent;
+				}
+				else if (event.item.@label == epmsSingleton.sectionLbl) 
+				{
+					homeVS.selectedChild=sectionContent;
+				}
+				else if (event.item.@label == epmsSingleton.poeLbl) 
+				{
+					homeVS.selectedChild=poeContentVS;
+				}
+				else if (event.item.@label == epmsSingleton.ndpLbl) 
+				{
+					homeVS.selectedChild=ndpContent;
+				}
+				else if (event.item.@label == epmsSingleton.usersLbl) 
+				{
+					homeVS.selectedChild=usersContent;
+				}
+				else if (event.item.@label == epmsSingleton.dataSignOffLbl) 
+				{
+					EPMSSingleton.getInstance().dataSignOffLbl = "Data Sign-Off";
+					homeVS.selectedChild=dataSignOffContent;
+				}
+				else if (event.item.@label == epmsSingleton.rejectedDataSignOffLbl) 
+				{
+					homeVS.selectedChild=rejectedDataSignOffContent;
+				}
+				else if (event.item.@label == epmsSingleton.scoringRptLbl) 
+				{
+					EPMSSingleton.getInstance().pgTitle = EPMSSingleton.getInstance().scoringRptTitle;
+					EPMSSingleton.getInstance().pgHeader =	EPMSSingleton.getInstance().scoringRptPgHdr
+					EPMSSingleton.getInstance().rptType = EPMSSingleton.getInstance().scoringRptTitle;
+						
+					getBudgetRptReqPopup();
+				}
+				else if (event.item.@label == epmsSingleton.budRptLbl) 
+				{
+					EPMSSingleton.getInstance().pgTitle = EPMSSingleton.getInstance().budgetRptTitle;
+					EPMSSingleton.getInstance().pgHeader =	EPMSSingleton.getInstance().budgetRptPgHdr
+					EPMSSingleton.getInstance().rptType = EPMSSingleton.getInstance().budgetRptTitle;
+					
+					getBudgetRptReqPopup();
+				}
+				else if (event.item.@label == epmsSingleton.dashBoardLbl) 
+				{
+					underConstruction();
+				}
+				else if (event.item.@label == epmsSingleton.internalAuditLbl) 
+				{
+					homeVS.selectedChild=dataSignOffContent;
+				}
+				
+				else if (event.item.@label == epmsSingleton.internalAuditLbl) 
+				{
+					EPMSSingleton.getInstance().dataSignOffLbl = "Internal Audit";
+					homeVS.selectedChild=dataSignOffContent;
+				}
+				else if (event.item.@label == epmsSingleton.auditTrailLbl) 
+				{
+					underConstruction();
+				}
+				else if (event.item.@label == epmsSingleton.comEmailLbl) 
+				{
+					underConstruction();
+				}
+				else if (event.item.@label == epmsSingleton.comSmslLbl) 
+				{
+					underConstruction();
+				}
+				
+				else if (event.item.@label == epmsSingleton.logoutLbl) 
+				{
+					logOut();
+				}
+				
+			}
+			
+			//Show Under Construction Alert for Incomplete Functionality
+			public function underConstruction():void
+			{
+				Alert.show("Functionality Not Available Yet!!!", "Under Construction", 4, null, null, Helper.noEntryImg);
+			}
+			
+			public var loadPopUp:IFlexDisplayObject; 
+			public var budgetRptReqPopup : BudgetRptReqPopup; 
+			
+			public function getBudgetRptReqPopup() : void
+			{
+				Helper.editNameWindow = PopUpManager.createPopUp(FlexGlobals.topLevelApplication.successfullyLogin, BudgetRptReqPopup, true); 
+				// cast to a nameEditorPopup
+				budgetRptReqPopup = BudgetRptReqPopup(Helper.editNameWindow); 
+			}
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		
+		<!-- Define the menu data. -->
+		<fx:XML format="e4x" id="myMenuData" >
+			<root>
+				<menuitem label="Home" icon="homeIcon"/>
+				<menuitem label="Organisational Structure" icon="orgIcon"/>
+				<menuitem label=" Programmes and Projects" icon="progIcon"/>
+				<menuitem label="Strategy" icon="strategyIcon"/>
+				<menuitem label="Portfolio Of Evidence" icon="poeIcon"/>
+				<menuitem label="Data Sign-Off" icon="dataSignOffIcon"/>
+				<menuitem label="Rejected Data Sign Off" icon="myTopIcon"/>
+				<menuitem label="User Management" icon="userIcon"/>
+				<menuitem label="Reports and Dash Boards" icon="rptIcon">
+					<menuitem label="Budget Report" enabled="true" icon="budgetIcon"/>
+					<menuitem label="Scoring Report" icon="scoringIcon"/>
+					<menuitem label="Dash Boards" icon="dashBoardIcon"/>
+				</menuitem>
+				<menuitem label="Internal Audit" icon="intAudIcon"/>
+				<menuitem label="Audit Trail" icon="audTrailIcon"/>
+				<menuitem label="Communication" icon="comIcon">
+					<menuitem label="Email" icon="emailIcon"/>
+					<menuitem label="Sms" icon="smsIcon"/>
+				</menuitem>
+				<menuitem label="Log Out" icon="logOutIcon"/>
+			</root>
+		</fx:XML>
+		
+	</fx:Declarations>
+		
+	<mx:ViewStack id="mainNavigator" width="100%" height="100%" paddingLeft="10" paddingRight="10" >
+		<content:LoginPanel id="login" width="100%" height="100%"/> 
+		
+		<mx:VBox id="successfullyLogin" width="100%" height="100%" verticalGap="0">	
+			<mx:VBox width="100%" height="90" color="#004B36" verticalGap="0">	
+				<mx:Canvas width="100%" height="80">
+					<mx:VBox width="100%" height="100%" color="#004B36" verticalGap="0">
+						<s:BorderContainer visible="false" width="100%" height="1"
+										   borderVisible="false"/>
+						<s:BorderContainer visible="true" width="100%" height="80%" borderVisible="false" 
+										   backgroundImage="@Embed(source='file:/images/Background8.JPG')">
+						</s:BorderContainer>
+						
+						<mx:HBox width="100%">
+							<s:Button label="Show Menu" click="doShowMenu()"/>
+							<mx:Text width="100%" color="#0B1FE0" fontWeight="bold" paddingRight="5"
+									 text="Logged in as : {epmsSingleton.currentUser.name + space + epmsSingleton.currentUser.surname}"
+									 textAlign="right"/>
+						</mx:HBox>
+						
+					</mx:VBox>
+				</mx:Canvas>	
+			</mx:VBox>	
+			
+			<mx:HBox width="100%" height="90%" horizontalGap="5" >
+								
+				<mx:Canvas width="100%" height="100%" verticalScrollPolicy="off" borderColor="#7DB3E4" borderStyle="solid"
+						   borderVisible="true">
+					<mx:ViewStack id="homeVS" width="100%" height="100%">
+						<content:Home id="home" width="100%" height="100%"/>
+						<content:MunicipalContent id="municipalContent" width="100%" height="100%"/>
+						<content:SectionContent id="sectionContent" width="100%" height="100%"/>
+						<!--	Porfolio of evidence	-->
+						<content:PoeContent id="poeContentVS" width="100%" height="100%" label="POE"/>
+						<content:NdpContent id="ndpContent" width="100%" height="100%"/>
+						<content:UsersContent id="usersContent" width="100%" height="100%"/>
+						<content:DataSignOffContent id="dataSignOffContent" width="100%" height="100%"/>
+						<content:RejectedDataSignOffContent id="rejectedDataSignOffContent" width="100%" height="100%"/>
+						<content:ReportContent id="reportContent" width="100%" height="100%"/>
+					</mx:ViewStack>
+				</mx:Canvas>
+				
+			</mx:HBox>
+			
+			<mx:HBox width="100%">
+				<mx:Text width="100%" color="#0B1FE0" fontWeight="bold" paddingBottom="5" paddingLeft="5"
+						 paddingRight="5" visible="false"/>
+				<mx:LinkButton  color="#0B1FE0" fontWeight="bold" paddingBottom="5" paddingLeft="5"
+								paddingRight="5"
+								label="Brought to you by Epsitech Information Solutions ©" click="navigateToURL(new URLRequest('http://www.epsitech.co.za/'), 'quote')"
+								textAlign="center"/>
+				<mx:Text width="100%" color="#0B1FE0" fontWeight="bold" paddingBottom="5" paddingLeft="5" paddingRight="5" visible="false"/>
+			</mx:HBox>
+			
+		</mx:VBox>		
+	</mx:ViewStack>
+</s:Application>

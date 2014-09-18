@@ -1,0 +1,281 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+package co.za.ngwane.epms.repository;
+
+import java.io.Serializable;
+import java.util.Collection;
+import java.util.Date;
+import javax.persistence.Basic;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.NamedQueries;
+import javax.persistence.NamedQuery;
+import javax.persistence.OneToMany;
+import javax.persistence.Table;
+import javax.persistence.Temporal;
+import javax.persistence.TemporalType;
+import javax.persistence.Transient;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlTransient;
+
+import co.za.ngwane.epms.helper.ValidationBean;
+
+/**
+ *
+ * @author bheki.lubisi
+ */
+@Entity
+@Table(name = "projtbl")
+@XmlRootElement
+@NamedQueries({
+    @NamedQuery(name = "Projtbl.findAll", query = "SELECT p FROM Projtbl p"),
+    @NamedQuery(name = "Projtbl.findById", query = "SELECT p FROM Projtbl p WHERE p.id = :id"),
+    @NamedQuery(name = "Projtbl.findByName", query = "SELECT p FROM Projtbl p WHERE p.name = :name"),
+    @NamedQuery(name = "Projtbl.findByStartd", query = "SELECT p FROM Projtbl p WHERE p.startd = :startd"),
+    @NamedQuery(name = "Projtbl.findByEndd", query = "SELECT p FROM Projtbl p WHERE p.endd = :endd"),
+    @NamedQuery(name = "Projtbl.findByTotbud", query = "SELECT p FROM Projtbl p WHERE p.totbud = :totbud"),
+    @NamedQuery(name = "Projtbl.findByBudspend", query = "SELECT p FROM Projtbl p WHERE p.budspend = :budspend"),
+    @NamedQuery(name = "Projtbl.findByNdp", query = "SELECT p FROM Projtbl p WHERE p.ndp = :ndp"),
+    @NamedQuery(name = "Projtbl.findByScore", query = "SELECT p FROM Projtbl p WHERE p.score = :score"),
+    @NamedQuery(name = "Projtbl.findByProgtblid", query = "SELECT p FROM Projtbl p WHERE p.progtblid = :progtblid"),
+    @NamedQuery(name = "Projtbl.findByNdpitem", query = "SELECT p FROM Projtbl p WHERE p.ndpitem = :ndpitem")})
+public class Projtbl implements Serializable {
+    private static final long serialVersionUID = 1L;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Basic(optional = false)
+    @Column(name = "ID")
+    private Integer id;
+    @Column(name = "NAME")
+    private String name;
+    @Column(name = "STARTD")
+    @Temporal(TemporalType.DATE)
+    private Date startd;
+    @Column(name = "ENDD")
+    @Temporal(TemporalType.DATE)
+    private Date endd;
+    // @Max(value=?)  @Min(value=?)//if you know range of your decimal fields consider using these annotations to enforce field validation
+    @Column(name = "TOTBUD")
+    private Float totbud;
+    @Column(name = "BUDSPEND")
+    private Float budspend;
+    @Column(name = "SCORE")
+    private Float score;
+    @Column(name = "NDP")
+    private Integer ndp;
+    @Column(name = "NDPITEM")
+    private Integer ndpitem;
+    @Column(name = "DESCRIPTION")
+    private String description;
+    
+    @Transient
+    ValidationBean validationBean;
+    
+    @Transient
+    private int errorCode;
+    
+    @Transient 
+    private String errorMessage;
+    
+    @JoinColumn(name = "OWNER", referencedColumnName = "ID")
+    @ManyToOne(optional = false)
+    private Userepms owner;
+    
+    @JoinColumn(name = "PROGTBLID", referencedColumnName = "ID")
+    @ManyToOne(optional = false)
+    private Progtbl progtblid;
+       
+    @OneToMany(cascade = CascadeType.ALL, mappedBy = "projtblid")
+    private Collection<Outcometbl> outcometblCollection;
+    
+    @Transient
+    public String allocatedBudget;
+
+    public Projtbl() {
+    }
+
+    public Projtbl(Integer id) {
+        this.id = id;
+    }
+
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public Date getStartd() {
+        return startd;
+    }
+
+    public void setStartd(Date startd) {
+        this.startd = startd;
+    }
+
+    public Date getEndd() {
+        return endd;
+    }
+
+    public void setEndd(Date endd) {
+        this.endd = endd;
+    }
+
+    public Float getTotbud() {
+        return totbud;
+    }
+
+    public void setTotbud(Float totbud) {
+        this.totbud = totbud;
+    }
+
+    public Float getBudspend() {
+        return budspend;
+    }
+
+    public void setBudspend(Float budspend) {
+        this.budspend = budspend;
+    }
+
+    public Integer getNdp() {
+        return ndp;
+    }
+
+    public void setNdp(Integer ndp) {
+        this.ndp = ndp;
+    }
+
+    public Integer getNdpitem() {
+        return ndpitem;
+    }
+
+    public void setNdpitem(Integer ndpitem) {
+        this.ndpitem = ndpitem;
+    }
+
+    public Progtbl getProgtblid() {
+        return progtblid;
+    }
+
+    public void setProgtblid(Progtbl progtblid) {
+        this.progtblid = progtblid;
+    }
+
+    @XmlTransient
+    public Collection<Outcometbl> getOutcometblCollection() {
+        return outcometblCollection;
+    }
+
+    public void setOutcometblCollection(Collection<Outcometbl> outcometblCollection) {
+        this.outcometblCollection = outcometblCollection;
+    }
+
+    @Override
+    public int hashCode() {
+        int hash = 0;
+        hash += (id != null ? id.hashCode() : 0);
+        return hash;
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        // TODO: Warning - this method won't work in the case the id fields are not set
+        if (!(object instanceof Projtbl)) {
+            return false;
+        }
+        Projtbl other = (Projtbl) object;
+        if ((this.id == null && other.id != null) || (this.id != null && !this.id.equals(other.id))) {
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public String toString() {
+        return "co.za.ngwane.epms.repository.Projtbl[ id=" + id + " ]";
+    }
+
+	public Float getScore()
+	{
+		return score;
+	}
+
+	public void setScore(Float score)
+	{
+		this.score = score;
+	}
+
+	public String getDescription()
+	{
+		return description;
+	}
+
+	public void setDescription(String description)
+	{
+		this.description = description;
+	}
+
+	public String getAllocatedBudget() {
+		return allocatedBudget;
+	}
+
+	public void setAllocatedBudget(String allocatedBudget) {
+		this.allocatedBudget = allocatedBudget;
+	}
+
+	public Userepms getOwner() {
+		return owner;
+	}
+
+	public void setOwner(Userepms owner) {
+		this.owner = owner;
+	}
+
+	public ValidationBean getValidationBean()
+	{
+		return validationBean;
+	}
+
+	public void setValidationBean(ValidationBean validationBean)
+	{
+		this.validationBean = validationBean;
+	}
+
+	public int getErrorCode()
+	{
+		return errorCode;
+	}
+
+	public void setErrorCode(int errorCode)
+	{
+		this.errorCode = errorCode;
+	}
+
+	public String getErrorMessage()
+	{
+		return errorMessage;
+	}
+
+	public void setErrorMessage(String errorMessage)
+	{
+		this.errorMessage = errorMessage;
+	}
+    
+}

@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox verticalGap="0" color="#004B36" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" xmlns:utils="utils.*"
+		 creationComplete="init()" xmlns:content="content.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.repository.Progtbl;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.core.IFlexDisplayObject;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			public function init():void
+			{
+			}
+			
+			public function setWidth() : void 
+			{
+			}
+			
+			[bindable]
+			public function ProgsShow():void
+			{
+				//getAllProg();
+			}
+			
+			public function search():void
+			{
+				if(searchInput.text != "")
+				{
+					var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+					var searchKey = searchInput.text;
+					remoteObject.destination = "programOperations";
+					remoteObject.addEventListener(FaultEvent.FAULT, searchFaultHandler);
+					remoteObject.addEventListener(ResultEvent.RESULT, searchResultHandler);
+					remoteObject.searchProg(searchKey);
+					cursorManager.setBusyCursor();
+				}
+				else
+				{
+					searchInput.text = "< Enter your search here >";
+					//getAllProg();
+				}
+			}
+			
+			public var planList:ArrayCollection = EPMSSingleton.getInstance().planList;
+			
+			public function searchResultHandler(event:ResultEvent):void
+			{
+				planList = (event.result as ArrayCollection);
+				//Alert.show("Result Search is: "+clientsList.length);
+				if(planList.length != 0)
+				{
+					planListDG.dataProvider = planList;
+				} 
+				else
+				{
+					Alert.show("Program info not found.","Error", 4, null, null, Helper.noEntryImg);
+				}
+				cursorManager.removeBusyCursor();
+			}
+			
+			public static function searchFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to search for please contact your administrator if this continues.","Failure", 4, null, null,Helper.noEntryImg);
+			}
+			
+			public function clearInnerText():void
+			{
+				if(searchInput.text == "< Enter your search here >")
+				{
+					searchInput.text = "";
+				}
+				
+			}
+			
+			public var loadPopUp:IFlexDisplayObject; 
+			//public var myPopUp:AddProg; 
+			
+			public var addPlanPopup : AddPlanPopup;  
+			
+			public function addPlan() : void
+			{
+				if(EPMSSingleton.getInstance().progAdd)
+				{
+					Helper.editNameWindow=PopUpManager.createPopUp(FlexGlobals.topLevelApplication.successfullyLogin, AddPlanPopup, true); 
+					// cast to a nameEditorPopup
+					addPlanPopup = AddPlanPopup(Helper.editNameWindow); 
+				}
+				else
+				{
+					Alert.show("You have no permission to add plan","Permission Error", 4, null, null, Helper.noEntryImg);
+				}
+			}
+			
+			public function refresh() : void 
+			{
+				//getAllProg();
+				searchInput.text = "< Enter your search here >";
+			}
+			
+			public function getSelectedPlan() : void 
+			{
+				EPMSSingleton.getInstance().selectedProg = planListDG.selectedItem as Progtbl;
+				//(this.parent as ViewStack).selectedIndex = 1
+				(this.parent as ViewStack).selectedChild = FlexGlobals.topLevelApplication.municipalContent.clusterVS;
+			}
+			
+		]]>
+	</fx:Script>
+	<mx:VBox verticalGap="0" width="100%" height="100%" paddingLeft="5" paddingBottom="5" paddingRight="5" paddingTop="5">
+		
+		<mx:Canvas x="80" y="49" width="100%" height="45" borderVisible="false">
+			<s:HGroup width="100%">
+				
+				<s:Label width="91" height="19" fontSize="14" text="Search:"/>
+				<s:VGroup>
+					<s:TextInput id="searchInput" x="68" y="7" width="186" change="search()" text="&lt; Enter your search here &gt;"
+								 click="clearInnerText()"/>
+					<s:Label text="search by any other field" paddingBottom="2" paddingLeft="2" paddingRight="2" fontSize="10"/>
+				</s:VGroup>
+				<mx:Canvas width="80%" borderVisible="false"/>
+				
+				<!--
+				<mx:Canvas id="refreshBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="refresh()">
+					<mx:Image source="@Embed('images/BtnRefresh.png')"/>
+				</mx:Canvas>
+				-->
+			</s:HGroup>
+		</mx:Canvas>
+		
+		<mx:Spacer/>
+		
+		<s:HGroup width="100%" paddingBottom="5">
+			<s:Label height="25" fontWeight="bold" paddingBottom="5" paddingLeft="0" paddingRight="5"
+					 paddingTop="5" text="Search returned {EPMSSingleton.getInstance().planList.length} result(s)"/>
+			<mx:Canvas width="80%" borderVisible="false"/>
+			<s:Label text="Municipal Plans" paddingTop="5" fontWeight="bold" fontSize="16"/>
+			<mx:Canvas width="80%" borderVisible="false"/>
+			<mx:Canvas id="addProgBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="addPlan()">
+				<mx:Image source="@Embed('images/BtnCreate.png')"/>
+			</mx:Canvas>
+		</s:HGroup>
+		
+		<mx:AdvancedDataGrid  id="planListDG" height="100%" width="100%" dataProvider="{EPMSSingleton.getInstance().planList}" 
+							  doubleClickEnabled="true" doubleClick="getSelectedPlan()">
+			
+			<mx:groupedColumns>
+				
+				<mx:AdvancedDataGridColumn headerText="NAME" dataField="name" id="nameDC" width="180"/>
+				<mx:AdvancedDataGridColumn headerText="BUDGET ALLOCATED" dataField="budgetClient" id="budgetClient" width="150"/>
+				<mx:AdvancedDataGridColumn headerText="BUDGET SPEND " dataField="budspendClient" id="budspendClientDC" width="150"/>
+				
+				<mx:AdvancedDataGridColumnGroup headerText="PERIOD" id="periodDC" width="80">    
+					<mx:AdvancedDataGridColumn headerText="START" dataField="startd" labelFunction="{Helper.dateFormatLabelOnDG}" id="startdeDC"/>
+					<mx:AdvancedDataGridColumn headerText="DATE" dataField="endd" labelFunction="{Helper.dateFormatLabelOnDG}" id="enddDC"/>
+				</mx:AdvancedDataGridColumnGroup>   
+				
+				<mx:AdvancedDataGridColumnGroup headerText="QAUTOR 1" id="qautorDC" width="80">    
+					<mx:AdvancedDataGridColumn dataField="q1startd" headerText="START" labelFunction="{Helper.dateFormatLabelOnDG}" id="q1startdDC"/>
+					<mx:AdvancedDataGridColumn dataField="q1endd" headerText="END" labelFunction="{Helper.dateFormatLabelOnDG}" id="q1enddDC" />
+				</mx:AdvancedDataGridColumnGroup>   
+				
+				<mx:AdvancedDataGridColumnGroup headerText="QAUTOR 2" width="80">    
+					<mx:AdvancedDataGridColumn dataField="q2startd" headerText="START" labelFunction="{Helper.dateFormatLabelOnDG}"/>
+					<mx:AdvancedDataGridColumn dataField="q2endd" headerText="END" labelFunction="{Helper.dateFormatLabelOnDG}"/>
+				</mx:AdvancedDataGridColumnGroup>   
+				
+				<mx:AdvancedDataGridColumnGroup headerText="QAUTOR 3" width="80">    
+					<mx:AdvancedDataGridColumn dataField="q3startd" headerText="START" labelFunction="{Helper.dateFormatLabelOnDG}"/>
+					<mx:AdvancedDataGridColumn dataField="q3endd" headerText="END" labelFunction="{Helper.dateFormatLabelOnDG}"/>
+				</mx:AdvancedDataGridColumnGroup>   
+				
+				<mx:AdvancedDataGridColumnGroup headerText="QAUTOR 4" width="80">    
+					<mx:AdvancedDataGridColumn dataField="q4startd" headerText="START" labelFunction="{Helper.dateFormatLabelOnDG}"/>
+					<mx:AdvancedDataGridColumn dataField="q4endd" headerText="END" labelFunction="{Helper.dateFormatLabelOnDG}"/>
+				</mx:AdvancedDataGridColumnGroup>   
+				
+			</mx:groupedColumns>
+			
+		</mx:AdvancedDataGrid>
+	</mx:VBox>
+	
+</mx:VBox>
+

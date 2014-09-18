@@ -1,0 +1,321 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="R0001" pageWidth="842" pageHeight="595" orientation="Landscape" whenNoDataType="AllSectionsNoDetail" columnWidth="756" leftMargin="43" rightMargin="43" topMargin="30" bottomMargin="30" isTitleNewPage="true" whenResourceMissingType="Empty" uuid="b0964cbc-4fb3-4a32-afd1-163d34d163b6">
+	<property name="com.jasperassistant.designer.DataSource" value="eNaTISDataSource"/>
+	<property name="com.jasperassistant.designer.Units" value="Millimeters"/>
+	<property name="com.jasperassistant.designer.Grid" value="true"/>
+	<property name="com.jasperassistant.designer.SnapToGrid" value="false"/>
+	<property name="com.jasperassistant.designer.GridWidth" value="43"/>
+	<property name="com.jasperassistant.designer.GridHeight" value="43"/>
+	<property name="com.jasperassistant.designer.Margins" value="true"/>
+	<property name="com.jasperassistant.designer.Rulers" value="true"/>
+	<property name="com.jasperassistant.designer.SnapToGuides" value="true"/>
+	<property name="com.jasperassistant.designer.HGuides" value="108,189,326,418,521,600,686"/>
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="15"/>
+	<queryString>
+		<![CDATA[]]>
+	</queryString>
+	<field name="programName" class="java.lang.String"/>
+	<field name="owner" class="java.lang.String"/>
+	<field name="availBudget" class="java.math.BigDecimal"/>
+	<field name="usedBudget" class="java.math.BigDecimal"/>
+	<field name="projectName" class="java.lang.String"/>
+	<field name="allocBudget" class="java.math.BigDecimal"/>
+	<field name="programEndD" class="java.util.Date"/>
+	<field name="programStartD" class="java.util.Date"/>
+	<field name="programBudget" class="java.math.BigDecimal"/>
+	<variable name="DATAFOUND" class="java.lang.String">
+		<variableExpression><![CDATA[$V{DATAFOUND}]]></variableExpression>
+	</variable>
+	<variable name="totnum" class="java.lang.Integer" resetType="Group" resetGroup="DG_AUT_CD" calculation="Count">
+		<variableExpression><![CDATA[]]></variableExpression>
+	</variable>
+	<variable name="results" class="java.lang.String">
+		<variableExpression><![CDATA["Yes"]]></variableExpression>
+	</variable>
+	<group name="DG_AUT_CD">
+		<groupHeader>
+			<band height="54" splitType="Stretch">
+				<staticText>
+					<reportElement uuid="f21b9310-878c-4f4c-94de-b8ef7ee06162" positionType="Float" mode="Opaque" x="554" y="29" width="195" height="23" forecolor="#000000" backcolor="#FFFFFF"/>
+					<textElement textAlignment="Left" verticalAlignment="Top">
+						<font fontName="SansSerif" size="8"/>
+					</textElement>
+					<text><![CDATA[Project Owner]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="835b3cc3-e624-453f-a52e-26296014bd36" positionType="Float" mode="Opaque" x="436" y="28" width="112" height="26" forecolor="#000000" backcolor="#FFFFFF"/>
+					<textElement textAlignment="Left" verticalAlignment="Top">
+						<font fontName="SansSerif" size="8"/>
+					</textElement>
+					<text><![CDATA[Final Score]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="f4f5f1ec-0ef5-4794-b0c6-4a473a7cf593" positionType="Float" mode="Opaque" x="320" y="28" width="113" height="26" forecolor="#000000" backcolor="#FFFFFF"/>
+					<textElement textAlignment="Left" verticalAlignment="Top">
+						<font fontName="SansSerif" size="8"/>
+					</textElement>
+					<text><![CDATA[Actual Score]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="878921df-8c0b-453c-94c8-0b731188a02c" positionType="Float" mode="Opaque" x="213" y="28" width="95" height="26" forecolor="#000000" backcolor="#FFFFFF"/>
+					<textElement textAlignment="Left" verticalAlignment="Top">
+						<font fontName="SansSerif" size="8"/>
+					</textElement>
+					<text><![CDATA[Target Score]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="dd7ff1bc-0a6d-40a7-920d-900033064a8d" positionType="Float" mode="Opaque" x="45" y="28" width="135" height="24" forecolor="#000000" backcolor="#FFFFFF"/>
+					<textElement textAlignment="Left" verticalAlignment="Top">
+						<font fontName="SansSerif" size="8"/>
+					</textElement>
+					<text><![CDATA[Project Name]]></text>
+				</staticText>
+				<staticText>
+					<reportElement uuid="6c504f8e-7eed-4d1e-9eda-b4818c349d8d" positionType="Float" mode="Opaque" x="5" y="28" width="37" height="24" forecolor="#000000" backcolor="#FFFFFF"/>
+					<textElement textAlignment="Left" verticalAlignment="Top">
+						<font fontName="SansSerif" size="8"/>
+					</textElement>
+					<text><![CDATA[Item
+no]]></text>
+				</staticText>
+				<line>
+					<reportElement uuid="1bf60aae-2b7c-4ee0-87eb-1423d55cb8c7" x="1" y="28" width="1" height="26" forecolor="#000000" backcolor="#FFFFFF"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineStyle="Solid"/>
+					</graphicElement>
+				</line>
+				<line>
+					<reportElement uuid="330b1937-109f-4817-ab0f-ce593f738018" x="42" y="28" width="1" height="26" forecolor="#000000" backcolor="#FFFFFF"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineStyle="Solid"/>
+					</graphicElement>
+				</line>
+				<line>
+					<reportElement uuid="8c05193e-d7c8-42fd-b99f-ad9067acda27" x="211" y="28" width="1" height="26" forecolor="#000000" backcolor="#FFFFFF"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineStyle="Solid"/>
+					</graphicElement>
+				</line>
+				<line>
+					<reportElement uuid="cb67c3fc-73de-44c3-9626-ec9782ae497b" x="318" y="28" width="1" height="26" forecolor="#000000" backcolor="#FFFFFF"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineStyle="Solid"/>
+					</graphicElement>
+				</line>
+				<line>
+					<reportElement uuid="805f5c33-edde-4dd5-9dcf-bc418aca0b79" x="434" y="28" width="1" height="26" forecolor="#000000" backcolor="#FFFFFF"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineStyle="Solid"/>
+					</graphicElement>
+				</line>
+				<line>
+					<reportElement uuid="72b24663-db39-43a9-81c1-a2e0a211a1a4" x="552" y="28" width="1" height="26" forecolor="#000000" backcolor="#FFFFFF"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineStyle="Solid"/>
+					</graphicElement>
+				</line>
+				<line>
+					<reportElement uuid="9b13238d-251b-4bab-b4ed-2d6ffcb7a43a" x="751" y="28" width="1" height="26" forecolor="#000000" backcolor="#FFFFFF"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineStyle="Solid"/>
+					</graphicElement>
+				</line>
+				<line>
+					<reportElement uuid="a5d2ec95-9c4a-4f87-9f1e-056d457eb3fd" x="1" y="28" width="751" height="1"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineStyle="Solid"/>
+					</graphicElement>
+				</line>
+				<line>
+					<reportElement uuid="7f18998a-b690-4657-84b6-2bfcb0c8f91e" x="2" y="52" width="750" height="1"/>
+					<graphicElement>
+						<pen lineWidth="0.5" lineStyle="Solid"/>
+					</graphicElement>
+				</line>
+			</band>
+		</groupHeader>
+		<groupFooter>
+			<band height="16" splitType="Stretch">
+				<line>
+					<reportElement uuid="fbcb83d5-0c41-494e-9c01-b6b4862fb514" x="2" y="0" width="750" height="1"/>
+				</line>
+			</band>
+		</groupFooter>
+	</group>
+	<title>
+		<band height="407" splitType="Stretch">
+			<line>
+				<reportElement uuid="56f808b1-0eb2-4989-9f69-6b8258a21508" positionType="Float" x="0" y="56" width="43" height="1"/>
+			</line>
+			<staticText>
+				<reportElement uuid="d9a64ca3-cf32-4387-95ba-a9c0fc3b2a52" positionType="Float" x="1" y="46" width="208" height="10"/>
+				<textElement verticalAlignment="Bottom">
+					<font fontName="Courier New" size="8"/>
+				</textElement>
+				<text><![CDATA[Execution]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="09753eff-2f0d-4f95-925a-1300370454d0" positionType="Float" x="0" y="63" width="62" height="10"/>
+				<textElement>
+					<font fontName="Courier New" size="8"/>
+				</textElement>
+				<text><![CDATA[Data found :]]></text>
+			</staticText>
+			<textField evaluationTime="Report" isBlankWhenNull="true">
+				<reportElement uuid="9b8a7e0b-243c-49e7-b0b5-3966c17635b2" positionType="Float" x="66" y="64" width="214" height="11"/>
+				<textElement>
+					<font fontName="Courier New" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{REPORT_COUNT}.intValue()==0?"No":"Yes"]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="ad07f90b-7744-482e-8d9a-c37c6508c040" positionType="Float" x="3" y="6" width="211" height="17"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Courier New" size="12" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[Program's Scoring Report]]></text>
+			</staticText>
+		</band>
+	</title>
+	<pageHeader>
+		<band height="20" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="ad07f90b-7744-482e-8d9a-c37c6508c040" positionType="Float" x="1" y="1" width="394" height="13"/>
+				<textElement verticalAlignment="Middle">
+					<font fontName="Courier New" size="10" isBold="true" isUnderline="false"/>
+				</textElement>
+				<text><![CDATA[Program's Scoring Report ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="c1999ae0-26ee-4db1-8297-75f8ba1dc492" positionType="Float" x="704" y="1" width="26" height="13"/>
+				<textElement>
+					<font fontName="Courier New" size="10" isBold="true"/>
+				</textElement>
+				<text><![CDATA[Page:]]></text>
+			</staticText>
+			<textField>
+				<reportElement uuid="94f28281-7672-4590-a003-071502ab397f" positionType="Float" x="730" y="1" width="24" height="13"/>
+				<textElement textAlignment="Right">
+					<font fontName="Courier New" size="10" isBold="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[new Integer($V{PAGE_NUMBER}.intValue() )]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement uuid="0d0db92e-1d10-4db1-8823-2f8a3e0e8d78" x="1" y="13" width="754" height="1"/>
+			</line>
+		</band>
+	</pageHeader>
+	<detail>
+		<band height="11" splitType="Stretch">
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="38b890a6-a0a6-4611-aa99-390d4809dfb6" x="45" y="0" width="135" height="11"/>
+				<textElement textAlignment="Left" verticalAlignment="Bottom">
+					<font fontName="Courier New" size="8"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{projectName}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="28d72c05-9bf8-49a5-b4ed-95c1f55c012d" x="215" y="0" width="93" height="11"/>
+				<textElement textAlignment="Left" verticalAlignment="Bottom">
+					<font fontName="Courier New" size="8"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{availBudget}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="ce3e8a08-7c38-4ac2-b871-d2f8d083e6ec" x="320" y="0" width="113" height="11"/>
+				<textElement textAlignment="Left" verticalAlignment="Bottom">
+					<font fontName="Courier New" size="8"/>
+					<paragraph lineSpacing="Single"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{usedBudget}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="d33e1bb3-930e-40c8-a1e0-32e2579fd627" x="436" y="0" width="112" height="11"/>
+				<textElement textAlignment="Left" verticalAlignment="Bottom">
+					<font fontName="Courier New" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{allocBudget}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement uuid="c676aef3-e87c-40e3-ad25-ffe8d0da1d78" x="554" y="0" width="195" height="11"/>
+				<textElement textAlignment="Left" verticalAlignment="Bottom">
+					<font fontName="Courier New" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{owner}]]></textFieldExpression>
+			</textField>
+			<line>
+				<reportElement uuid="009d5b5b-6c1d-4880-b9d9-860bf4439c46" x="751" y="0" width="1" height="11" forecolor="#000000"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement uuid="9fe8e6b4-bb5f-48bf-b40c-8c457fdcf505" x="552" y="0" width="1" height="11" forecolor="#000000"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement uuid="ff9b507a-22f7-4866-b64f-717fcc3d3cd5" x="434" y="0" width="1" height="11" forecolor="#000000"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement uuid="fc405a34-81e6-4fd6-96cf-6ea2f488dc67" x="318" y="0" width="1" height="11" forecolor="#000000"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement uuid="eacc7d81-7cc9-4d88-8184-dda15064625f" x="211" y="0" width="1" height="11" forecolor="#000000"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement uuid="a474798b-8580-45ec-afbd-03c93fb62fad" x="42" y="0" width="1" height="11" forecolor="#000000"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<line>
+				<reportElement uuid="0ad892c7-0efc-4e94-bc6b-b91fb30c2b54" x="1" y="0" width="1" height="11" forecolor="#000000"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<textField>
+				<reportElement uuid="840d3d58-afb7-45dc-b21c-df3e8dc87672" x="5" y="0" width="37" height="11"/>
+				<textElement>
+					<font fontName="Courier New" size="8"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$V{REPORT_COUNT}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<lastPageFooter>
+		<band height="43" splitType="Stretch">
+			<line>
+				<reportElement uuid="06a64f06-b4ca-4b07-aeab-e19074c8cb98" x="2" y="28" width="752" height="1"/>
+				<graphicElement>
+					<pen lineWidth="0.5" lineStyle="Solid"/>
+				</graphicElement>
+			</line>
+			<staticText>
+				<reportElement uuid="7298d1fb-deb6-4672-ac9f-67e4e22e70e3" x="357" y="32" width="99" height="11"/>
+				<textElement>
+					<font fontName="Courier New" size="8" isBold="true"/>
+				</textElement>
+				<text><![CDATA[End of Report]]></text>
+			</staticText>
+		</band>
+	</lastPageFooter>
+	<summary>
+		<band splitType="Stretch"/>
+	</summary>
+</jasperReport>

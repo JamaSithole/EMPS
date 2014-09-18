@@ -1,0 +1,222 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox verticalGap="0" color="#004B36" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" xmlns:utils="utils.*"
+		 show="init()" xmlns:content="content.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.repository.Dept;
+			import co.za.ngwane.epms.repository.Directorate;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.core.IFlexDisplayObject;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			import spark.events.IndexChangeEvent;
+			
+			[Bindable]
+			public var deptObj : Object;
+			
+			public function init():void
+			{
+				//getAllDirs();
+				
+				if(EPMSSingleton.getInstance().selectedDept != null)
+				{
+					getDirByDept(EPMSSingleton.getInstance().selectedDept);
+					
+					for each(var depItem:Object in EPMSSingleton.getInstance().deptList)
+					{
+						if(EPMSSingleton.getInstance().selectedDept.name == depItem.name)
+						{
+							deptInput.selectedItem = deptObj = depItem;
+							break;
+						}
+					}
+				}
+				
+			}
+			
+			public function setWidth() : void 
+			{
+			}
+			
+			public function search():void
+			{
+				if(searchInput.text != "")
+				{
+					var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+					var searchKey = searchInput.text;
+					remoteObject.destination = "directorateOperations";
+					remoteObject.addEventListener(FaultEvent.FAULT, searchFaultHandler);
+					remoteObject.addEventListener(ResultEvent.RESULT, searchDirResultHandler);
+					remoteObject.searchUser(searchKey);
+					cursorManager.setBusyCursor();
+				}
+				else
+				{
+					searchInput.text = "< Enter your search here >";
+					//getAllUsers();
+					//FlexGlobals.topLevelApplication.mainNavigator.login.getAllCluster();
+				}
+			}
+			
+			public static function searchFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to search please contact your administrator if this continues.","Failure", 4, null, null,Helper.noEntryImg);
+			}
+			
+			public function searchDirResultHandler(event:ResultEvent):void
+			{
+				EPMSSingleton.getInstance().dirList = (event.result as ArrayCollection);
+				if(EPMSSingleton.getInstance().dirList.length != 0)
+				{
+					dirListDG.dataProvider = EPMSSingleton.getInstance().dirList;
+				} 
+				else
+				{
+					Alert.show("Directorate not found.","Error", 4, null, null, Helper.noEntryImg);
+				}
+				
+				cursorManager.removeBusyCursor();
+			}
+			
+			public function clearInnerText():void
+			{
+				if(searchInput.text == "< Enter your search here >")
+				{
+					searchInput.text = "";
+				}
+				
+			}
+			
+			public var loadPopUp:IFlexDisplayObject; 
+			
+			public var addDirectoratePopup : AddDirectoratePopup; 
+			
+			public function addDirectorate() : void
+			{
+				if(EPMSSingleton.getInstance().directorateAdd)
+				{
+					Helper.editNameWindow=PopUpManager.createPopUp(FlexGlobals.topLevelApplication.successfullyLogin, AddDirectoratePopup, true); 
+					// cast to a nameEditorPopup
+					addDirectoratePopup = AddDirectoratePopup(Helper.editNameWindow); 
+				}
+				
+				else
+				{
+					Alert.show("You have no permission to add directorate","Permission Error", 4, null, null,Helper.noEntryImg);
+				}
+			}
+			
+			public function refresh() : void 
+			{
+				//getAllDirs();
+				searchInput.text = "< Enter your search here >";
+			}
+			
+			public function getSelectedDir() : void 
+			{
+				EPMSSingleton.getInstance().selectedDirectorate = dirListDG.selectedItem as co.za.ngwane.epms.repository.Directorate;
+				(this.parent as ViewStack).selectedChild = FlexGlobals.topLevelApplication.municipalContent.sectionVS;
+			}
+			
+			
+			public var selectedDept : Dept = new Dept;
+			public function getSelectedDept(event:IndexChangeEvent):void
+			{
+				selectedDept = deptInput.selectedItem;
+				getDirByDept(selectedDept);
+			}
+			
+			public function getDirByDept(deptName : Dept) : void
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				remoteObject.destination = "directorateOperations";
+				remoteObject.addEventListener(FaultEvent.FAULT, getAllDirfaultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT, getAllDirResultHandler);
+				remoteObject.getDirByDept(deptName);
+				cursorManager.setBusyCursor();
+			}
+			
+			public static function getAllDirfaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to load directorates please contact your administrator if this continues.","Failure", 4, null, null,Helper.noEntryImg);
+			}
+			
+			public var dirList:ArrayCollection = EPMSSingleton.getInstance().dirList;
+			
+			public function getAllDirResultHandler(event:ResultEvent):void
+			{
+				//Alert.show("event.result: \n"+event.result);
+				dirList = (event.result as ArrayCollection);
+				EPMSSingleton.getInstance().dirList = dirList;
+				
+				for each (var dir : co.za.ngwane.epms.repository.Directorate in EPMSSingleton.getInstance().dirList )
+				{
+					EPMSSingleton.getInstance().dirNameList.addItem(dir.name);
+				}
+				cursorManager.removeBusyCursor();
+			}
+			
+		]]>
+	</fx:Script>
+	<mx:VBox verticalGap="0" width="100%" height="100%" paddingLeft="5" paddingBottom="5" paddingRight="5" paddingTop="5">
+		
+		<mx:Canvas x="80" y="49" width="100%" height="45" borderVisible="false">
+			<s:HGroup width="100%">
+				<s:DropDownList id="deptInput" width="220" dataProvider="{EPMSSingleton.getInstance().deptList}" prompt="Select Department"
+						change="getSelectedDept(event)" labelField="name"/>
+				<mx:Spacer/><mx:Spacer/>
+				<s:VGroup>
+				<s:TextInput id="searchInput" x="68" y="7" width="186" change="search()" click="clearInnerText()"
+						 prompt="search directorates"/>
+				</s:VGroup>
+				<mx:Canvas width="80%" borderVisible="false"/>
+				<mx:Canvas width="80%" borderVisible="false"/>
+			</s:HGroup>
+		</mx:Canvas>
+		
+		<mx:Spacer/>
+		
+		<s:HGroup width="100%" paddingBottom="5">
+			<s:Label height="25" fontWeight="bold" paddingBottom="5" paddingLeft="0" paddingRight="5"
+					 paddingTop="5" text="Search returned {EPMSSingleton.getInstance().dirList.length} result(s)"/>
+			<mx:Canvas width="80%" borderVisible="false"/>
+			<s:Label text="Municipal Directorates" paddingTop="5" fontWeight="bold" fontSize="16"/>
+			<mx:Canvas width="80%" borderVisible="false"/>
+			<mx:Canvas id="addDirBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="addDirectorate()">
+				<mx:Image source="@Embed('images/BtnCreate.png')"/>
+			</mx:Canvas>
+		</s:HGroup>
+		
+		<mx:DataGrid id="dirListDG" height="100%" width="100%" dataProvider="{EPMSSingleton.getInstance().dirList}"
+					 doubleClickEnabled="true" doubleClick="getSelectedDir()">
+			<mx:columns>
+				<mx:DataGridColumn headerText="ID" dataField="id" visible="false" width="40"/>
+				<mx:DataGridColumn headerText="Name" dataField="name" id="nameDC"/>
+				<mx:DataGridColumn headerText="Description" dataField="description" id="descriptionDC" />
+				<mx:DataGridColumn headerText="Directorate" dataField="deptid.name" id="directorateDC"/>
+				<mx:DataGridColumn itemRenderer="content.DirectorateItemRender" visible="true" headerText=""/>
+			</mx:columns>
+		</mx:DataGrid>
+	</mx:VBox>
+	
+</mx:VBox>
+

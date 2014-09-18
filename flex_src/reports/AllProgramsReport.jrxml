@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="AllProgramsReport" pageWidth="595" pageHeight="842" whenNoDataType="AllSectionsNoDetail" columnWidth="535" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="868819c0-2e1e-457b-84c5-82067f527855">
+	<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+	<property name="ireport.zoom" value="1.0"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="1"/>
+	<style name="Title" fontName="Times New Roman" fontSize="50" isBold="true" pdfFontName="Times-Bold"/>
+	<style name="SubTitle" forecolor="#736343" fontName="Arial" fontSize="18"/>
+	<style name="Column header" forecolor="#666666" fontName="Arial" fontSize="12" isBold="true"/>
+	<style name="Detail" backcolor="#99FFFF" fontName="Arial" fontSize="12"/>
+	<style name="Row" mode="Transparent">
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{REPORT_COUNT}%2 == 0]]></conditionExpression>
+			<style backcolor="#E6DAC3"/>
+		</conditionalStyle>
+	</style>
+	<style name="Table">
+		<box>
+			<pen lineWidth="1.0" lineColor="#000000"/>
+			<topPen lineWidth="1.0" lineColor="#000000"/>
+			<leftPen lineWidth="1.0" lineColor="#000000"/>
+			<bottomPen lineWidth="1.0" lineColor="#000000"/>
+			<rightPen lineWidth="1.0" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="Table_TH" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="Table_CH" mode="Opaque" forecolor="#B89F7D" backcolor="#F2EBDF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="Table_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+		<conditionalStyle>
+			<conditionExpression><![CDATA[$V{REPORT_COUNT}%2 == 0]]></conditionExpression>
+			<style mode="Transparent" backcolor="#E6DAC3"/>
+		</conditionalStyle>
+	</style>
+	<style name="Table 1_TH" mode="Opaque" backcolor="#4BA1F2">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="Table 1_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="Table 1_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="Table 2_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="Table 2_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="Table 2_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="Table 3_TH" mode="Opaque" backcolor="#1CA698">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="Table 3_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="Table 3_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="Table 4_TH" mode="Opaque" backcolor="#F0F8FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="Table 4_CH" mode="Opaque" backcolor="#BFE1FF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<style name="Table 4_TD" mode="Opaque" backcolor="#FFFFFF">
+		<box>
+			<pen lineWidth="0.5" lineColor="#000000"/>
+			<topPen lineWidth="0.5" lineColor="#000000"/>
+			<leftPen lineWidth="0.5" lineColor="#000000"/>
+			<bottomPen lineWidth="0.5" lineColor="#000000"/>
+			<rightPen lineWidth="0.5" lineColor="#000000"/>
+		</box>
+	</style>
+	<subDataset name="tableDataset" uuid="798bfd61-061d-4c47-ab7b-2d172ab3293f">
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="One Empty Record"/>
+		<parameter name="programName" class="java.lang.String"/>
+		<queryString>
+			<![CDATA[]]>
+		</queryString>
+		<field name="programBudget" class="java.math.BigDecimal"/>
+		<field name="programName" class="java.lang.String"/>
+		<field name="programStartD" class="java.util.Date"/>
+		<field name="programEndD" class="java.util.Date"/>
+	</subDataset>
+	<subDataset name="Dataset1" uuid="c381bed2-94a3-44e4-af76-ad09080dd05b">
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="Programs"/>
+		<queryString>
+			<![CDATA[]]>
+		</queryString>
+	</subDataset>
+	<subDataset name="Dataset2" uuid="450f87f1-1c70-43ae-b7bc-477d91c114b6">
+		<property name="com.jaspersoft.studio.data.defaultdataadapter" value="myDataSource"/>
+		<queryString>
+			<![CDATA[SELECT * FROM projtbl]]>
+		</queryString>
+		<field name="NAME" class="java.lang.String">
+			<fieldDescription><![CDATA[]]></fieldDescription>
+		</field>
+		<field name="TOTBUD" class="java.lang.Float">
+			<fieldDescription><![CDATA[]]></fieldDescription>
+		</field>
+		<field name="BUDSPEND" class="java.lang.Float">
+			<fieldDescription><![CDATA[]]></fieldDescription>
+		</field>
+		<field name="OWNER" class="java.lang.Integer">
+			<fieldDescription><![CDATA[]]></fieldDescription>
+		</field>
+		<field name="percUsed" class="java.lang.Double"/>
+		<field name="availBudget" class="java.math.BigDecimal"/>
+		<field name="usedBudget" class="java.math.BigDecimal"/>
+		<field name="projectName" class="java.lang.String"/>
+		<field name="allocBudget" class="java.math.BigDecimal"/>
+		<field name="programEndD" class="java.util.Date"/>
+		<field name="owner" class="java.lang.String"/>
+		<field name="programStartD" class="java.util.Date"/>
+		<field name="programBudget" class="java.math.BigDecimal"/>
+		<field name="programName" class="java.lang.String"/>
+	</subDataset>
+	<queryString>
+		<![CDATA[]]>
+	</queryString>
+	<field name="programName" class="java.lang.String"/>
+	<field name="programStartD" class="java.util.Date"/>
+	<field name="programEndD" class="java.util.Date"/>
+	<field name="programBudget" class="java.math.BigDecimal"/>
+	<field name="projectName" class="java.lang.String"/>
+	<field name="owner" class="java.lang.String"/>
+	<field name="allocBudget" class="java.math.BigDecimal"/>
+	<field name="usedBudget" class="java.math.BigDecimal"/>
+	<field name="availBudget" class="java.math.BigDecimal"/>
+	<field name="percUsed" class="java.lang.Double"/>
+	<variable name="usedBudget_SUM" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{usedBudget}]]></variableExpression>
+	</variable>
+	<variable name="allocBudget_sum" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{allocBudget}]]></variableExpression>
+	</variable>
+	<variable name="availBudget_SUM" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{availBudget}]]></variableExpression>
+	</variable>
+	<variable name="projPercentage" class="java.lang.String" calculation="DistinctCount"/>
+	<variable name="availBudget_1_SUM" class="java.math.BigDecimal" calculation="Sum">
+		<variableExpression><![CDATA[$F{availBudget}]]></variableExpression>
+	</variable>
+	<title>
+		<band height="185" splitType="Stretch">
+			<staticText>
+				<reportElement uuid="237ff744-a928-40c9-9236-74c6fb6e5072" style="Title" mode="Opaque" x="94" y="0" width="370" height="62" forecolor="#000000" backcolor="#86D4F0"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="26" isItalic="true" isUnderline="false" pdfFontName="Times-Roman"/>
+				</textElement>
+				<text><![CDATA[Municipal Programs Report]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="a45ae54e-6fe1-407a-9b84-9fee660717bd" x="86" y="81" width="383" height="42" backcolor="#99FFFF"/>
+				<textElement textAlignment="Center">
+					<font size="12"/>
+				</textElement>
+				<text><![CDATA[This report shows all the programs under the municipality with all their projects and budgets.]]></text>
+			</staticText>
+			<line>
+				<reportElement uuid="1aec5347-dacc-464e-8f9f-43eac7968d4a" x="-2" y="136" width="556" height="1"/>
+			</line>
+		</band>
+	</title>
+	<detail>
+		<band height="70">
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="9117ca38-372e-4fc0-970f-2887590d1a41" mode="Transparent" x="1" y="50" width="92" height="20" isPrintWhenDetailOverflows="true"/>
+				<textElement textAlignment="Center"/>
+				<textFieldExpression><![CDATA[$F{projectName}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="77e584d0-de6d-43fe-b3b4-c143b0b9a066" x="370" y="50" width="100" height="20"/>
+				<textElement textAlignment="Center"/>
+				<textFieldExpression><![CDATA[$F{availBudget}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="0394d537-d8c5-49c5-a15b-1af58a3fd078" key="" style="Table 2_CH" isPrintRepeatedValues="false" x="93" y="24" width="77" height="20" isPrintInFirstWholeBand="true" forecolor="#4F495C" backcolor="#86D4F0"/>
+				<textElement textAlignment="Center">
+					<font fontName="Calibri" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Project Owner ]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="9e049c88-a7a7-4198-907a-9b64a27ddad3" key="" style="Table 2_CH" stretchType="RelativeToTallestObject" isPrintRepeatedValues="false" mode="Opaque" x="469" y="24" width="74" height="20" isPrintInFirstWholeBand="true" forecolor="#4F495C" backcolor="#86D4F0"/>
+				<textElement textAlignment="Center">
+					<font fontName="Calibri" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Program Name]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="3009f008-83db-459c-aeda-57518bf281bd" isPrintRepeatedValues="false" x="470" y="50" width="73" height="20"/>
+				<textElement textAlignment="Center"/>
+				<textFieldExpression><![CDATA[$F{programName}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="5cd45bd8-d0fe-4875-98ba-193fa45564a6" key="" style="Table 2_CH" isPrintRepeatedValues="false" x="-1" y="24" width="95" height="20" isPrintInFirstWholeBand="true" forecolor="#4F495C" backcolor="#86D4F0"/>
+				<textElement textAlignment="Center">
+					<font fontName="Calibri" size="12" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Project Name]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="27782ec2-09a6-480f-b32e-ac82db3ed3fd" key="" style="Table 2_CH" isPrintRepeatedValues="false" x="270" y="24" width="99" height="20" isPrintInFirstWholeBand="true" forecolor="#4F495C" backcolor="#86D4F0"/>
+				<textElement textAlignment="Center">
+					<font fontName="Calibri" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Used Budget]]></text>
+			</staticText>
+			<staticText>
+				<reportElement uuid="ca3ab2f1-4852-4cc8-ae81-a2988f090803" key="" style="Table 2_CH" isPrintRepeatedValues="false" x="369" y="24" width="101" height="20" isPrintInFirstWholeBand="true" forecolor="#4F495C" backcolor="#86D4F0"/>
+				<textElement textAlignment="Center">
+					<font fontName="Calibri" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Available Budget]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="3bb3a711-53f3-4303-9a08-8e03949e3c03" x="270" y="50" width="100" height="20"/>
+				<textElement textAlignment="Center"/>
+				<textFieldExpression><![CDATA[$F{usedBudget}]]></textFieldExpression>
+			</textField>
+			<staticText>
+				<reportElement uuid="db7ec403-4cab-4d68-bb54-0c1ebd01329c" key="" style="Table 2_CH" isPrintRepeatedValues="false" x="169" y="24" width="101" height="20" isPrintInFirstWholeBand="true" forecolor="#4F495C" backcolor="#86D4F0"/>
+				<textElement textAlignment="Center">
+					<font fontName="Calibri" isItalic="true"/>
+				</textElement>
+				<text><![CDATA[Allocated Budget]]></text>
+			</staticText>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="f8dfe2f7-2836-4dc9-a86c-b0ef789392d6" x="169" y="50" width="100" height="20"/>
+				<textElement textAlignment="Center"/>
+				<textFieldExpression><![CDATA[$F{allocBudget}]]></textFieldExpression>
+			</textField>
+			<textField isStretchWithOverflow="true">
+				<reportElement uuid="e6f95d2b-4339-4691-8ca6-d2bdbfa3582b" x="94" y="50" width="77" height="20"/>
+				<textElement textAlignment="Center"/>
+				<textFieldExpression><![CDATA[$F{owner}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="28" splitType="Stretch"/>
+	</pageFooter>
+	<summary>
+		<band height="200" splitType="Stretch">
+			<property name="local_mesure_unitheight" value="pixel"/>
+		</band>
+	</summary>
+</jasperReport>

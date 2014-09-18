@@ -1,0 +1,435 @@
+package co.za.ngwane.epms.helper
+{
+	import co.za.ngwane.epms.repository.Clustertbl;
+	
+	import flash.net.FileFilter;
+	import flash.utils.ByteArray;
+	import flash.xml.XMLDocument;
+	import flash.xml.XMLNode;
+	
+	import mx.collections.ArrayCollection;
+	import mx.controls.Alert;
+	import mx.controls.DateField;
+	import mx.controls.advancedDataGridClasses.AdvancedDataGridColumn;
+	import mx.controls.dataGridClasses.DataGridColumn;
+	import mx.core.IFlexDisplayObject;
+	import mx.formatters.DateFormatter;
+	import mx.rpc.events.FaultEvent;
+	import mx.rpc.events.ResultEvent;
+	import mx.rpc.remoting.RemoteObject;
+	import mx.rpc.xml.SimpleXMLEncoder;
+	import mx.utils.ObjectUtil;
+	import mx.utils.StringUtil;
+	
+	import spark.components.ComboBox;
+	
+	public class Helper
+	{
+		[Embed(source="images/new_message.png")]
+		[Bindable]public static var messageIcon:Class;
+		
+		[Embed(source="images/newNote.png")]
+		[Bindable]public static var newNote:Class;
+		
+		[Embed(source="images/newIcon.png")]
+		[Bindable]public static var newIcon:Class;
+		
+		[Embed(source="images/question.png")]
+		[Bindable]public static var question:Class;
+		
+		[Embed(source="images/openedMeassage.png")]
+		[Bindable]public static var openedMeassage:Class;
+		
+		[Embed(source="/icon/accept.png")]
+		[Bindable]public static var accept:Class;
+		
+		[Embed(source="/icon/loan.png")]
+		[Bindable]public static var loan:Class;
+				
+		[Embed(source="/icon/contract.png")]
+		[Bindable]public static var contract:Class;
+		
+		[Embed(source="images/notes.png")]
+		[Bindable]public static var notes:Class;
+		
+		[Embed(source="images/notes_found.png")]
+		[Bindable]public static var notesFound:Class;		
+			
+		[Embed(source="/icon/letter.png")]
+		[Bindable]public static var letter:Class;
+		
+		[Embed(source="/icon/money.png")]
+		[Bindable]public static var money:Class;
+		
+		[Embed(source="images/payment.png")]
+		[Bindable]public static var paymentIcon:Class;
+		
+		[Embed(source="/icon/return.png")]
+		[Bindable]public static var iconReturn:Class;
+		
+		[Embed(source="/icon/edit.png")]
+		[Bindable]public static var editIcon:Class;
+		
+		[Embed(source="/icon/submit.png")]
+		[Bindable]public static var submit:Class;
+		
+		[Embed(source="/icon/clear.png")]
+		[Bindable]public static var clear:Class;
+		
+		[Embed(source="/icon/find.png")]
+		[Bindable]public static var find:Class;
+		
+		[Embed(source="/icon/lock.png")]
+		[Bindable]public static var iconLock:Class;
+		
+		[Embed(source="/icon/status_disabled.png")]
+		[Bindable]public static var iconStatusDisabled:Class;
+		
+		[Bindable]
+		[Embed(source='images/noentry.png')]
+		public static var noEntryImg:Class;	
+		
+		[Bindable]
+		[Embed(source='icon/error.png')]
+		public static var error:Class;	
+		
+		[Bindable]
+		[Embed(source='icon/upload.png')]
+		public static var upload:Class;	
+		
+		[Bindable]
+		[Embed(source='icon/requestContract.png')]
+		public static var requestContract:Class;	
+		
+		[Bindable]
+		[Embed(source='icon/save.png')]
+		public static var iconSave:Class;	
+		
+		[Bindable]
+		[Embed(source='icon/delete.png')]
+		public static var deleteIcon:Class;	
+		
+		[Bindable]
+		[Embed(source='icon/view.png')]
+		public static var viewIcon:Class;	
+		
+		[Bindable]
+		[Embed(source='icon/add.png')]
+		public static var addIcon:Class;
+		
+		[Bindable]
+		[Embed(source='icon/maintain.png')]
+		public static var maintainIcon:Class;
+		
+		[Bindable]
+		[Embed(source='images/StatusOnline.png')]
+		public static var iconOnline:Class;	
+		
+		[Bindable]
+		[Embed(source='images/StatusOffline.png')]
+		public static var iconOffline:Class;	
+		
+		[Bindable]
+		[Embed(source='images/resetPassword.png')]
+		public static var iconResetPassword:Class;
+		
+		[Bindable]
+		[Embed(source='images/BtnCancel.png')]
+		public static var iconCancel:Class;
+		
+		[Bindable]
+		[Embed(source='icon/clear.png')]
+		public static var cancel:Class;
+		
+		[Bindable]
+		[Embed(source='images/BtnClear.png')]
+		public static var iconClear:Class;
+		
+		[Bindable]
+		[Embed(source='images/information.png')]
+		public static var informationImg:Class;
+		
+		[Bindable]
+		[Embed(source='images/stop.png')]
+		public static var stopImg:Class;
+		
+		
+		public static var fileTypeArray : Array = new Array(imageTypes) ;
+		public static var imageTypes:FileFilter = new FileFilter("Images (*.jpg, *.jpeg, *.gif, *.png)", "*.jpg; *.jpeg; *.gif; *.png");
+		public static var adobeTypes:FileFilter = new FileFilter("Adobe (*.pdf)", "*.pdf");
+		
+		
+		public function Helper(){}
+		
+		
+		public static function formatDate(date : Date ):String 
+		{
+			if( date == null )return "";
+			var dateFormat : DateFormatter = new DateFormatter();
+			dateFormat.formatString			= 'DD/MM/YYYY'
+			return dateFormat.format(date);
+		} 
+		
+		public static function dateFormatter( formatString : String ):DateFormatter 
+		{
+			var formatDateTime : DateFormatter = new DateFormatter();
+			formatDateTime.formatString = formatString;
+			return formatDateTime;
+		} 
+		
+		public static function getNodeByName( dataXML : XML , name : String ):XML
+		{
+			var resultsNode : XML;
+			for each (var requestData:XML in dataXML.children()) 
+			{
+				var nodeName : String = requestData.name()
+				if( nodeName == name )
+				{
+					resultsNode = requestData;
+					break;
+				}					
+			}
+			return resultsNode;
+		}
+		
+		public static function clearNode( dataXML : XML  ):XML
+		{
+			for each (var requestData:XML in dataXML.children()) 
+			{
+				dataXML.replace(requestData.name(), new XML());	
+			}
+			return dataXML;
+		}
+		
+		public static function getElementByName( dataXML:XML, elementName:String ):XML
+		{
+			var elementXML:XML;
+			for each (var item:XML in dataXML.children())
+			{
+				var itemName : String = item.name();
+				if( itemName == elementName )
+				{
+					elementXML = item;
+				}
+				if( elementXML == null && item != null && item.children().length() > 0 )
+				{
+					elementXML = getElementByName(item,elementName);
+				}
+				if( elementXML != null )break;
+			}			
+			return elementXML;	
+		}
+		
+		public static function reomveNameSpace(xmlData:XML, ns:Namespace ):XML
+		{
+			var xmlString:String;
+			var xmlnsPattern:RegExp;
+			var namespaceRemovedXML:String;
+			
+			xmlString = xmlData.toXMLString();
+			
+			xmlnsPattern = new RegExp("xmlns[^\"]*\"[^\"]*\"", "gi");
+			
+			namespaceRemovedXML = xmlString.replace(xmlnsPattern, "");
+			default xml namespace = ns;
+			return new XML(namespaceRemovedXML);
+			
+		}
+		
+		public static function convertObjectToXML( obj : Object, qnameString : String ):String
+		{
+			var qname : QName = new QName(qnameString);
+			var xmlDoc:XMLDocument = new XMLDocument();
+			var xmlEncoder : SimpleXMLEncoder = new SimpleXMLEncoder(xmlDoc);
+			var xmlNode : XMLNode = xmlEncoder.encodeValue( obj,qname,xmlDoc);
+			return xmlDoc.toString();
+		}
+		
+		public static function getDaysDifference(date1:Date, date2:Date):Number
+		{
+			var MS_PER_DAY:uint = 1000 * 60 * 60 * 24;
+			var tempDate:Date = new Date(date2.time - date1.time);
+			var difference:Number = 
+				Math.abs(Math.round((tempDate.time / MS_PER_DAY)));
+			return difference;
+		}
+				
+		public static function dateAdd(number:Number = 0, date:Date = null,datepart:String = "date"):Date
+		{
+			if (date == null) {
+				date = new Date();
+			}
+			
+			var returnDate:Date = new Date(date.time);;
+			
+			switch (datepart.toLowerCase()) {
+				case "fullyear":
+				case "month":
+				case "date":
+				case "hours":
+				case "minutes":
+				case "seconds":
+				case "milliseconds":
+					returnDate[datepart] += number;
+					break;
+				default:
+					/* Unknown date part, do nothing. */
+					break;
+			}
+			return returnDate;
+		}
+		
+		public static function isNumeric(numer : String):Boolean{
+			var result : Boolean;
+			result = !isNaN(Number(numer));
+			return result;
+		}
+		public static function validateIDNumber(idNumber : String):Boolean
+		{
+			if(idNumber != null && idNumber.length == 13)
+			{
+				var a : int = 0;
+				var i : int = 0;
+				while(i < 12 )
+				{
+					a = a + int(idNumber.substr(i,1));
+					i = i +2; 
+				}				
+				var b : String = '';
+				var j : int = 1;
+				while(j < 12 )
+				{
+					b = b + idNumber.substr(j,1);
+					j = j +2; 
+				}				
+				var c: int = int(b) * 2;				
+				var strC : String = c.toString();
+				i = 0;
+				var d : int = 0;
+				while (i < strC.length)
+				{
+					d += int(strC.substr(i,1));
+					i++;
+				}
+				
+				var aPlusD : int = a + d;
+				
+				var aPlusDStr : String =  aPlusD.toString();
+				
+				var answer : int = 10 - int(aPlusDStr.substr(1,1));
+				
+				var strAnswer : String = answer.toString();
+				
+				if( strAnswer.length != 1 )
+				{
+					answer = int(strAnswer.substr(1,1));
+				}
+				
+				if(answer == int(idNumber.substr(12,1)))
+				{
+					return true
+				}
+			}       
+			return false;			
+		}
+		
+		public static function changeFirstLettersToUpperCase( string : String): String
+		{
+			var array : Array = string.split(" ");
+			string = "";
+			for( var i:int=0; i < array.length; i++ )
+			{
+				string = string +" "+firstCharToUpper(array[i]);
+			}
+			
+			return string;			 
+		}
+		
+		public static function firstCharToUpper(string:String):String 
+		{
+			var string:String = string.toLowerCase();
+			var firstLetter:String = string.charAt(0).toUpperCase();
+			var restWord:String = string.substr (1, string.length);
+			string = firstLetter + restWord;
+			return string;
+		}
+		
+		public static var dateFormat : String = "YYYY-MM-DD";
+		public static var editNameWindow:IFlexDisplayObject; 
+		
+		public static function dateFormatLabelFunctionDGColumn(item:Object, column:DataGridColumn):String
+		{
+			var formatter : DateFormatter = new DateFormatter();
+			formatter.formatString = dateFormat;
+			var strDate : String = formatter.format(item[column.dataField]); 
+			return strDate;
+		}
+		
+		public static function dateFormatLabelOnDG(item:Object, column:AdvancedDataGridColumn):String
+		{
+			var formatter : DateFormatter = new DateFormatter();
+			formatter.formatString = dateFormat;
+			var strDate : String = formatter.format(item[column.dataField]); 
+			return strDate;
+		}
+		
+		public static var titleCounter : Number = 0;
+		[Bindable]
+		public static var titleArray:ArrayCollection = new ArrayCollection([ 
+			{label:"Mr", data:titleCounter++}, 
+			{label:"Ms", data:titleCounter++},
+			{label:"Mrs", data:titleCounter++},
+			{label:"Dr", data:titleCounter++},
+			{label:"Prof", data:titleCounter++}
+		]);
+		
+		[Bindable]
+		public static var yesOrNoArray:ArrayCollection = new ArrayCollection([ 
+			{label:"No", data:0}, 
+			{label:"Yes", data:1}]);
+		
+		
+		public static var billingCycleCounter : Number = 0;
+		public static var billingCycleArray:ArrayCollection = new ArrayCollection([ 
+			{label:"Daily", data:billingCycleCounter++}, 
+			{label:"Weekly", data:billingCycleCounter++},
+			{label:"Fortnight", data:billingCycleCounter++},
+			{label:"Monthly", data:billingCycleCounter++}
+		]);
+		
+		public static var idCounter : Number = 0;
+		public static var idTypeArray:ArrayCollection = new ArrayCollection([ 
+			{label:"RSAID", data:idCounter++}, 
+			{label:"Passport", data:idCounter++}
+		]);
+		
+		public static var empTypeCounter : Number = 0;
+		public static var empTypeArray:ArrayCollection = new ArrayCollection([ 
+			{label:"Permanent", data:empTypeCounter++}, 
+			{label:"Temporary", data:empTypeCounter++}
+		]);
+		
+		public static var quaterCounter : Number = 0;
+		public static var quaterArray:ArrayCollection = new ArrayCollection([ 
+			{label:"Quater 1", data:quaterCounter++}, 
+			{label:"Quater 2", data:quaterCounter++}, 
+			{label:"Quater 3", data:quaterCounter++}, 
+			{label:"Quater 4", data:quaterCounter++}
+		]);
+		
+		
+		public static var gender:ArrayCollection = new ArrayCollection([ 
+			{label:"Male", data:0}, 
+			{label:"Female", data:1}]);
+		
+		public static var auditStatCounter : Number = 0;
+		public static var auditStatArray:ArrayCollection = new ArrayCollection([ 
+			{label:"Weakness", data:auditStatCounter++}, 
+			{label:"Quater 2", data:auditStatCounter++}, 
+			{label:"Quater 3", data:auditStatCounter++}, 
+			{label:"Quater 4", data:auditStatCounter++}
+		]);
+		
+		public static var ZAR : String = "R ";
+	}
+}

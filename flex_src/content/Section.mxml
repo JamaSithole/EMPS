@@ -1,0 +1,250 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mx:VBox verticalGap="0" color="#004B36" xmlns:fx="http://ns.adobe.com/mxml/2009" 
+		 xmlns:s="library://ns.adobe.com/flex/spark" 
+		 xmlns:mx="library://ns.adobe.com/flex/mx" width="100%" height="100%" xmlns:utils="utils.*"
+		 show="init()"  xmlns:content="content.*">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	
+	<fx:Script>
+		<![CDATA[
+			import co.za.ngwane.epms.helper.EPMSSingleton;
+			import co.za.ngwane.epms.helper.Helper;
+			import co.za.ngwane.epms.repository.Directorate;
+			import co.za.ngwane.epms.repository.Sectiontbl;
+			
+			import mx.collections.ArrayCollection;
+			import mx.containers.ViewStack;
+			import mx.controls.Alert;
+			import mx.core.FlexGlobals;
+			import mx.core.IFlexDisplayObject;
+			import mx.managers.PopUpManager;
+			import mx.rpc.events.FaultEvent;
+			import mx.rpc.events.ResultEvent;
+			import mx.rpc.remoting.RemoteObject;
+			import mx.utils.ObjectUtil;
+			
+			import spark.events.IndexChangeEvent;
+			
+			[Bindable]
+			public var dirObj : Object;
+			
+			public function init():void
+			{
+				//getAllSections();
+				
+				if(EPMSSingleton.getInstance().selectedDirectorate != null)
+				{
+					getSectByDir(EPMSSingleton.getInstance().selectedDirectorate);
+					
+					for each(var dirItem:Object in EPMSSingleton.getInstance().dirList)
+					{
+						if(EPMSSingleton.getInstance().selectedDirectorate.name == dirItem.name)
+						{
+							dirInput.selectedItem = dirObj = dirItem;
+							break;
+						}
+					}
+				}
+				
+			}
+			
+			public function setWidth() : void 
+			{
+				
+			}
+			
+			[bindable]
+			public function sectionShow():void
+			{
+				//getAllSections();
+			}
+			
+			public function search():void
+			{
+				if(searchInput.text != "")
+				{
+					var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+					var searchKey = searchInput.text;
+					remoteObject.destination = "sectionOperations";
+					remoteObject.addEventListener(FaultEvent.FAULT, searchFaultHandler);
+					remoteObject.addEventListener(ResultEvent.RESULT, searchResultHandler);
+					remoteObject.searchSections(searchKey);
+					cursorManager.setBusyCursor();
+				}
+				else
+				{
+					searchInput.text = "< Enter your search here >";
+					getAllSections();
+				}
+			}
+			
+			public static function searchFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to search please contact your administrator if this continues.","Failure", 4, null, null,Helper.noEntryImg);
+			}
+			
+			public function searchResultHandler(event:ResultEvent):void
+			{
+				sectionList = (event.result as ArrayCollection);
+				//Alert.show("Result Search is: "+clientsList.length);
+				if(sectionList.length != 0)
+				{
+					sectionListDG.dataProvider = sectionList;
+				} 
+				else
+				{
+					Alert.show("Section info not found.","Error", 4, null, null, Helper.noEntryImg);
+				}
+				cursorManager.removeBusyCursor();
+			}
+			
+			public function clearInnerText():void
+			{
+				if(searchInput.text == "< Enter your search here >")
+				{
+					searchInput.text = "";
+				}
+				
+			}
+			
+			public function getAllSections():void
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				remoteObject.destination = "sectionOperations";
+				remoteObject.addEventListener(FaultEvent.FAULT, getAllSectionfaultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT, getAllSectionResultHandler);
+				remoteObject.getAllSections();
+				cursorManager.setBusyCursor();
+			}
+			
+			public static function getAllSectionfaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to load sections please contact your administrator if this continues.","Failure", 4, null, null,Helper.noEntryImg);
+			}
+			
+			public function getAllSectionResultHandler(event:ResultEvent):void
+			{
+				//Alert.show("event.result: \n"+event.result);
+				sectionList = (event.result as ArrayCollection);
+				EPMSSingleton.getInstance().sectionList = sectionList;
+				sectionListDG.dataProvider = sectionList;
+				cursorManager.removeBusyCursor();
+				setWidth();
+			}
+			
+			public var loadPopUp:IFlexDisplayObject; 
+			//public var myPopUp:AddSections; 
+			
+			public var addSectionPopup : AddSectionPopup; 
+			
+			public function addSection() : void
+			{
+				if(EPMSSingleton.getInstance().userAdd)
+				{
+					Helper.editNameWindow=PopUpManager.createPopUp(FlexGlobals.topLevelApplication.successfullyLogin, AddSectionPopup, true); 
+					// cast to a nameEditorPopup
+					addSectionPopup = AddSectionPopup(Helper.editNameWindow); 
+				}
+				
+				else
+				{
+					Alert.show("You have no permission to add user","Permission Error", 4, null, null,Helper.noEntryImg);
+				}
+			}
+			
+			public function refresh() : void 
+			{
+				//getAllSections();
+				searchInput.text = "< Enter your search here >";
+			}
+			
+			public var selectedDir : co.za.ngwane.epms.repository.Directorate = new co.za.ngwane.epms.repository.Directorate;
+			public function getSelectedDir(event:IndexChangeEvent):void
+			{
+				selectedDir = dirInput.selectedItem;
+				getSectByDir(selectedDir);
+			}
+			
+			public function getSectByDir(dirName : co.za.ngwane.epms.repository.Directorate) : void
+			{
+				var remoteObject:mx.rpc.remoting.RemoteObject = new mx.rpc.remoting.RemoteObject();
+				
+				remoteObject.destination = "sectionOperations";
+				remoteObject.addEventListener(FaultEvent.FAULT, getSectByDeptFaultHandler);
+				remoteObject.addEventListener(ResultEvent.RESULT, getSectByDeptResultHandler);
+				remoteObject.getSectionByDir(dirName);
+				cursorManager.setBusyCursor();
+			}
+			
+			public static function getSectByDeptFaultHandler(event:FaultEvent):void 
+			{
+				//Alert.show( ObjectUtil.toString(event.fault) );
+				Alert.show("Failed to load sections please contact your administrator if this continues.","Failure", 4, null, null,Helper.noEntryImg);
+			}
+			
+			public var sectionList:ArrayCollection = EPMSSingleton.getInstance().sectionList;
+			
+			public function getSectByDeptResultHandler(event:ResultEvent):void
+			{
+				//Alert.show("event.result: \n"+event.result);
+				sectionList = (event.result as ArrayCollection);
+				EPMSSingleton.getInstance().sectionList = sectionList;
+				
+				for each (var section : co.za.ngwane.epms.repository.Sectiontbl in EPMSSingleton.getInstance().sectionList )
+				{
+					EPMSSingleton.getInstance().sectionNameList.addItem(section.name);
+				}
+				
+				cursorManager.removeBusyCursor();
+			}
+		]]>
+	</fx:Script>
+	<mx:VBox verticalGap="0" width="100%" height="100%" paddingLeft="5" paddingBottom="5" paddingRight="5" paddingTop="5">
+		
+		<mx:Canvas x="80" y="49" width="100%" height="45" borderVisible="false">
+			<s:HGroup width="100%">
+				<s:DropDownList id="dirInput" width="220" dataProvider="{EPMSSingleton.getInstance().dirList}" prompt="Select Directory"
+								change="getSelectedDir(event)" labelField="name"/>
+				<mx:Spacer/><mx:Spacer/>
+				<s:VGroup>
+					<s:TextInput id="searchInput" x="68" y="7" width="186" change="search()" click="clearInnerText()"
+								 prompt="search sections"/>
+				</s:VGroup>
+				<mx:Canvas width="80%" borderVisible="false"/>
+				<!--<mx:Canvas id="refreshBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="refresh()">
+				<mx:Image source="@Embed('images/BtnRefresh.png')"/>
+				</mx:Canvas>-->
+			</s:HGroup>
+		</mx:Canvas>
+		
+		<mx:Spacer/>
+		
+		<s:HGroup width="100%" paddingBottom="5">
+			<s:Label height="25" fontWeight="bold" paddingBottom="5" paddingLeft="0" paddingRight="5"
+					 paddingTop="5" text="Search returned {EPMSSingleton.getInstance().sectionList.length} result(s)"/>
+			<mx:Canvas width="80%" borderVisible="false"/>
+			<s:Label text="Municipal Sections" paddingTop="5" fontWeight="bold" fontSize="16"/>
+			<mx:Canvas width="80%" borderVisible="false"/>
+			<mx:Canvas id="addSectionsBT" useHandCursor="true" buttonMode="true" mouseChildren="false" click="addSection()">
+				<mx:Image source="@Embed('images/BtnCreate.png')"/>
+			</mx:Canvas>
+		</s:HGroup>
+		
+		<mx:DataGrid id="sectionListDG" height="100%" width="100%" dataProvider="{EPMSSingleton.getInstance().sectionList}">
+			<mx:columns>
+				<mx:DataGridColumn headerText="ID" dataField="id" visible="false" width="40"/>
+				<mx:DataGridColumn headerText="Name" dataField="name" id="nameDC"/>
+				<mx:DataGridColumn headerText="Description" dataField="description" id="middleNameDC"/>
+				<mx:DataGridColumn headerText="Directory" dataField="directorateid.name" id="deptDC"/>
+				<mx:DataGridColumn itemRenderer="content.SectionItemRender" visible="true" headerText=""/>
+			</mx:columns>
+		</mx:DataGrid>
+	</mx:VBox>
+	
+</mx:VBox>
+
